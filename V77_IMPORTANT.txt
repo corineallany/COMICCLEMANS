@@ -1,8 +1,0 @@
-V77 FINAL — À faire
-1. GitHub : remplacer index.html + push.js + sw.js par ceux de ce pack. Garder manifest.webmanifest et icons.
-2. Supabase Edge Function : remplacer supabase/functions/send-push/index.ts par celui du pack puis redéployer :
-   npx supabase functions deploy send-push
-3. Ne supprimer aucune table ni aucune donnée Supabase.
-4. Ouvrir d'abord COM Le Mans sur l'ordinateur qui contient le plus de données et se connecter : V77 récupère les caches locaux + cloud, fusionne et republie.
-5. Ensuite ouvrir/recharger COM Le Mans sur le téléphone et se connecter avec le même compte. Le profil se lie par email/authUserId.
-6. Paramètres > Notifications téléphone > Activer sur chaque appareil désiré.
