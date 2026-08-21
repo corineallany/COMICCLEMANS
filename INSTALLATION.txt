@@ -1,0 +1,7 @@
+COM ICC Le Mans — PWA V70
+À mettre à la racine GitHub : index.html, manifest.webmanifest, sw.js et le dossier icons.
+
+iPhone : Safari > Partager > Ajouter à l'écran d'accueil > COM Le Mans > Ajouter.
+Android : Chrome > menu ⋮ > Installer l'application / Ajouter à l'écran d'accueil.
+
+IMPORTANT : téléverser TOUS les fichiers du pack, pas seulement index.html.
