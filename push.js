@@ -1,121 +1,13 @@
-
-(function(){
-'use strict';
-
-let pushStatusEl=null;
-let vapidCache='';
-
-function b64ToUint8Array(base64String){
-  const padding='='.repeat((4-base64String.length%4)%4);
-  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
-  const raw=atob(base64);
-  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
-}
-function setStatus(msg,ok){
-  if(pushStatusEl){pushStatusEl.textContent=msg;pushStatusEl.className='text-[11px] mt-2 '+(ok?'text-emerald-700':'text-slate-500');}
-}
-async function currentSession(){
-  if(typeof cloudClient==='undefined'||!cloudClient)return null;
-  const {data}=await cloudClient.auth.getSession();
-  return data?.session||null;
-}
-function currentMemberId(){
-  try{return localStorage.getItem('icc2_member_id')||''}catch(e){return ''}
-}
-async function publicKey77(){
-  const embedded=String(window.ICC_VAPID_PUBLIC_KEY||'').trim();
-  if(embedded && !embedded.startsWith('A_REMPLACER'))return embedded;
-  if(vapidCache)return vapidCache;
-  if(typeof cloudClient==='undefined'||!cloudClient)throw new Error('Connexion Supabase indisponible.');
-  const {data,error}=await cloudClient.functions.invoke('send-push',{body:{action:'public-key'}});
-  if(error)throw error;
-  if(!data?.publicKey)throw new Error('Clé publique de notifications indisponible.');
-  vapidCache=data.publicKey;return vapidCache;
-}
-async function saveSubscription(sub){
-  const session=await currentSession();
-  if(!session)throw new Error('Connecte-toi d’abord à ton compte.');
-  const json=sub.toJSON();
-  const memberId=currentMemberId();
-  const row={
-    user_id:session.user.id,
-    member_id:memberId||null,
-    endpoint:json.endpoint,
-    subscription:json,
-    user_agent:navigator.userAgent,
-    enabled:true,
-    updated_at:new Date().toISOString()
-  };
-  const {error}=await cloudClient.from('icc_push_subscriptions').upsert(row,{onConflict:'endpoint'});
-  if(error)throw error;
-}
-async function enablePush(){
-  try{
-    if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Les notifications push ne sont pas disponibles sur cet appareil.');
-    const key=await publicKey77();
-    const permission=await Notification.requestPermission();
-    if(permission!=='granted')throw new Error('Autorisation de notifications refusée.');
-    const reg=await navigator.serviceWorker.ready;
-    let sub=await reg.pushManager.getSubscription();
-    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToUint8Array(key)});
-    await saveSubscription(sub);
-    setStatus(currentMemberId()?'Notifications téléphone activées et liées à ton profil ✅':'Notifications activées ; lie ton compte à une fiche membre.',true);
-    return true;
-  }catch(e){console.warn('Push',e);setStatus(e.message||String(e),false);alert(e.message||e);return false;}
-}
-async function rebind77(){
-  try{
-    if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
-    const reg=await navigator.serviceWorker.ready;
-    const sub=await reg.pushManager.getSubscription();
-    if(sub && Notification.permission==='granted' && await currentSession())await saveSubscription(sub);
-    refreshStatus();
-  }catch(e){console.warn('Push rebind',e)}
-}
-async function disablePush(){
-  try{
-    const reg=await navigator.serviceWorker.ready;
-    const sub=await reg.pushManager.getSubscription();
-    if(sub){
-      if(typeof cloudClient!=='undefined'&&cloudClient)await cloudClient.from('icc_push_subscriptions').update({enabled:false,updated_at:new Date().toISOString()}).eq('endpoint',sub.endpoint);
-      await sub.unsubscribe();
-    }
-    setStatus('Notifications désactivées.',false);
-  }catch(e){console.warn(e)}
-}
-async function refreshStatus(){
-  try{
-    if(!('serviceWorker' in navigator)||!('PushManager' in window)){setStatus('Notifications non disponibles sur cet appareil.',false);return}
-    const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();
-    setStatus(sub&&Notification.permission==='granted'
-      ?(currentMemberId()?'Notifications téléphone activées ✅':'Notifications activées — profil à relier.')
-      :'Notifications téléphone non activées.',!!sub);
-  }catch(e){}
-}
-function installUI(){
-  const page=document.getElementById('page-settings');
-  if(!page||document.getElementById('v71-push-card'))return;
-  const content=document.getElementById('settings-content')||page;
-  const card=document.createElement('div');card.id='v71-push-card';card.className='bg-white rounded-2xl border shadow-sm p-5';
-  card.innerHTML=`<div class="flex flex-wrap justify-between items-start gap-3"><div><h3 class="font-black text-iccViolet">🔔 Notifications téléphone</h3><p class="text-xs text-slate-500 mt-1">Notifications système même lorsque COM Le Mans est fermée.</p></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="v71EnablePush()" class="bg-iccYellow text-slate-900 text-xs font-black px-4 py-2 rounded-lg">Activer</button><button type="button" onclick="v71DisablePush()" class="bg-white border text-xs font-bold px-4 py-2 rounded-lg">Désactiver</button></div></div><div id="v71-push-status" class="text-[11px] mt-2 text-slate-500"></div>`;
-  content.prepend(card);pushStatusEl=document.getElementById('v71-push-status');refreshStatus();
-}
-window.v71EnablePush=enablePush;window.v71DisablePush=disablePush;window.v77RefreshPushBinding=rebind77;
-
-async function sendPushEvent(kind,payload={}){
-  try{
-    const session=await currentSession();
-    if(!session||typeof cloudClient==='undefined'||!cloudClient)return;
-    const {error}=await cloudClient.functions.invoke('send-push',{body:{kind,payload}});
-    if(error)console.warn('Push event',kind,error);
-  }catch(e){console.warn('Push event',kind,e)}
-}
-window.v71SendPushEvent=sendPushEvent;
-
-/* Les sauvegardes V77 sont finales ; on accroche les événements après chargement. */
-document.addEventListener('DOMContentLoaded',()=>{
-  setTimeout(installUI,400);
-  setTimeout(rebind77,1200);
-});
-window.addEventListener('load',()=>{setTimeout(installUI,800);setTimeout(rebind77,1600)});
-})();
+(()=>{'use strict';let statusEl=null,keyCache='';const app=()=>window.COMApp;
+function b64(s){const p='='.repeat((4-s.length%4)%4),raw=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
+function status(msg,ok=false){if(statusEl){statusEl.textContent=msg;statusEl.className='text-[11px] mt-2 '+(ok?'text-emerald-700':'text-slate-500')}}
+async function invoke(action,payload={}){const c=app()?.cloudClient;if(!c)throw new Error('Supabase indisponible.');const{data,error}=await c.functions.invoke('send-push',{body:{action,...payload}});if(error)throw error;if(data?.success===false)throw new Error(data.error||'Erreur notifications');return data||{}}
+async function publicKey(){if(keyCache)return keyCache;const d=await invoke('public-key');if(!d.publicKey)throw new Error('Clé VAPID publique indisponible.');return keyCache=d.publicKey}
+async function subscription(){if(!('serviceWorker'in navigator)||!('PushManager'in window))throw new Error('Notifications push non disponibles sur cet appareil.');const reg=await navigator.serviceWorker.ready;return{reg,sub:await reg.pushManager.getSubscription()}}
+async function enable(){try{if(!app()?.session)throw new Error('Connecte-toi d’abord à ton compte.');if(!('Notification'in window))throw new Error('Notifications non disponibles.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('Autorisation de notifications refusée.');const{reg,sub:existing}=await subscription();const sub=existing||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(await publicKey())});const d=await invoke('push-subscribe',{subscription:sub.toJSON(),userAgent:navigator.userAgent});status(d.member_id?'Notifications activées et liées au profil ✅':'Notifications activées. Associe ton e-mail à une fiche membre.',true);return true}catch(e){console.warn(e);status(e.message||String(e));alert(e.message||e);return false}}
+async function disable(){try{const{reg,sub}=await subscription();void reg;if(sub){await invoke('push-disable',{endpoint:sub.endpoint});await sub.unsubscribe()}status('Notifications désactivées.')}catch(e){status(e.message||String(e))}}
+async function rebind(){try{if(!app()?.session)return;const{sub}=await subscription();if(sub&&Notification.permission==='granted')await invoke('push-subscribe',{subscription:sub.toJSON(),userAgent:navigator.userAgent});await refresh()}catch(e){console.warn(e)}}
+async function refresh(){try{const{sub}=await subscription();status(sub&&Notification.permission==='granted'?'Notifications téléphone activées ✅':'Notifications téléphone non activées.',!!sub)}catch(e){status('Notifications non disponibles.')}}
+async function test(){try{const d=await invoke('test-push',{title:'COM Le Mans',body:'Les notifications fonctionnent ✅',url:'./'});status(`Test : ${d.sent||0} envoyée(s), ${d.failed||0} échec(s).`,(d.sent||0)>0)}catch(e){status(e.message||String(e))}}
+function mountSettings(){const slot=document.getElementById('push-settings-slot');if(!slot)return;slot.innerHTML='<div class="border rounded-xl p-4"><div class="flex flex-wrap justify-between gap-3"><div><b class="text-sm text-iccViolet">🔔 Notifications téléphone</b><p class="text-[10px] text-slate-500">Notifications système même quand COM Le Mans est fermée.</p></div><div class="flex gap-2"><button id="push-enable" class="bg-iccYellow text-slate-900 text-xs font-black px-3 py-2 rounded-lg">Activer</button><button id="push-test" class="bg-white border text-xs font-bold px-3 py-2 rounded-lg">Tester</button><button id="push-disable" class="bg-white border text-xs font-bold px-3 py-2 rounded-lg">Désactiver</button></div></div><div id="push-status-final" class="text-[11px] mt-2 text-slate-500"></div></div>';statusEl=document.getElementById('push-status-final');document.getElementById('push-enable').onclick=enable;document.getElementById('push-disable').onclick=disable;document.getElementById('push-test').onclick=test;refresh()}
+window.COMPush={enable,disable,rebind,refresh,test,mountSettings};document.addEventListener('DOMContentLoaded',()=>setTimeout(mountSettings,500));})();
