@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ICC Le Mans — COM ICC Le Mans — V71</title>
+<title>ICC Le Mans — COM ICC Le Mans — V73 Realtime sécurisé</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -46,7 +46,7 @@ iccBlue:'#1d4ed8',iccGreen:'#059669'
 /* V71 PUSH CONFIG
    Remplace la valeur ci-dessous par la clé publique VAPID générée pour Supabase.
    Ne mets JAMAIS la clé privée ici. */
-window.ICC_VAPID_PUBLIC_KEY = 'BCjfSNO04VflQMKhF4LIbd2v8XqO0CcYKRKcfy34UGs0EExlxEMnLG76PPEQSxJVsNSO1hhpsd2fnjYnALrHXPk';
+window.ICC_VAPID_PUBLIC_KEY = 'A_REMPLACER_PAR_LA_CLE_VAPID_PUBLIQUE';
 </script>
 <script src="./push.js" defer></script>
 
@@ -855,12 +855,187 @@ function saveCloudConfig(){if(role!=='responsable')return alert('Réservé au Re
 function openCloudLogin(){if(!cloudClient)initCloud();if(!cloudClient)return showPage('settings');openModal('cloud-login-modal');}
 async function cloudLogin(e){e.preventDefault();if(!cloudClient)return;const email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value,info=document.getElementById('cloud-login-info');info.textContent='Connexion…';const {error}=await cloudClient.auth.signInWithPassword({email,password});info.textContent=error?error.message:'Connexion réussie.';if(!error){closeModal('cloud-login-modal');await cloudAfterLogin();}}
 async function cloudSignup(e){e.preventDefault();if(!cloudClient)return;const email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value,info=document.getElementById('cloud-login-info');if(password.length<6){info.textContent='Le mot de passe doit contenir au moins 6 caractères.';return}info.textContent='Création du compte…';const {error}=await cloudClient.auth.signUp({email,password});info.textContent=error?error.message:'Compte créé. Selon les réglages Supabase, confirme ton e-mail puis reconnecte-toi.';}
-async function cloudAfterLogin(){cloudReady=true;setCloudInfo('Connecté au groupe. Synchronisation des données…',true);await cloudPull(false);const session=(await cloudClient.auth.getSession()).data.session;const email=(session?.user?.email||'').toLowerCase();const me=members.find(m=>(m.loginEmail||m.email||'').toLowerCase()===email);const isAdmin=iccIsAdminEmail(email);localStorage.setItem('icc2_admin_override',isAdmin?'1':'0');if(isAdmin){role='responsable';localStorage.setItem('icc2_role',role);if(me)localStorage.setItem('icc2_member_id',me.id);const rs=document.getElementById('role-select');if(rs)rs.value=role;}else if(me){role=me.role||'equipier';localStorage.setItem('icc2_role',role);localStorage.setItem('icc2_member_id',me.id);const rs=document.getElementById('role-select');if(rs)rs.value=role;}if(!cloudRealtime&&cloudClient){try{cloudRealtime=cloudClient.channel('icc-main-live').on('postgres_changes',{event:'UPDATE',schema:'public',table:'icc_app_state',filter:'id=eq.main'},()=>cloudPull(false)).subscribe()}catch(e){console.warn('Realtime Supabase',e)}}setCloudInfo(isAdmin?'Connectée en tant qu’admin technique (accès total).':(me?('Connecté en tant que '+fullName(me)+'.'):('Connecté — associe cet e-mail à une fiche membre pour appliquer automatiquement son rôle.')),true);renderAll();}
+async function cloudAfterLogin(){cloudReady=true;setCloudInfo('Connecté au groupe. Synchronisation des données…',true);await cloudPull(false);const session=(await cloudClient.auth.getSession()).data.session;const email=(session?.user?.email||'').toLowerCase();const me=members.find(m=>(m.loginEmail||m.email||'').toLowerCase()===email);const isAdmin=iccIsAdminEmail(email);localStorage.setItem('icc2_admin_override',isAdmin?'1':'0');if(isAdmin){role='responsable';localStorage.setItem('icc2_role',role);if(me)localStorage.setItem('icc2_member_id',me.id);const rs=document.getElementById('role-select');if(rs)rs.value=role;}else if(me){role=me.role||'equipier';localStorage.setItem('icc2_role',role);localStorage.setItem('icc2_member_id',me.id);const rs=document.getElementById('role-select');if(rs)rs.value=role;}if(!cloudRealtime&&cloudClient){try{cloudRealtime=cloudClient.channel('icc-main-live-v73').on('postgres_changes',{event:'*',schema:'public',table:'icc_app_state',filter:'id=eq.main'},()=>handleRealtime73()).subscribe()}catch(e){console.warn('Realtime Supabase',e)}}setCloudInfo(isAdmin?'Connectée en tant qu’admin technique (accès total).':(me?('Connecté en tant que '+fullName(me)+'.'):('Connecté — associe cet e-mail à une fiche membre pour appliquer automatiquement son rôle.')),true);renderAll();}
 function cloudPayload(){let pilotage={},postReviewsCloud={},evaluationsCloud={};try{pilotage=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}try{postReviewsCloud=JSON.parse(localStorage.getItem('icc2_post_reviews_v46')||'{}')||{}}catch(e){}try{evaluationsCloud=JSON.parse(localStorage.getItem('icc2_evaluations_v47')||'{}')||{}}catch(e){}return {settings:appSettings,poles,members,programs,solicitations,pilotage,postReviews:postReviewsCloud,evaluations:evaluationsCloud,cloudSchemaVersion:68};}
-function scheduleCloudPush(){if(!cloudClient)return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(cloudPush,700);}
-async function cloudPush(){if(!cloudClient)return;const {data:{session}}=await cloudClient.auth.getSession();if(!session)return;const payload=cloudPayload();const {error}=await cloudClient.from('icc_app_state').upsert({id:'main',data:payload,updated_at:new Date().toISOString()},{onConflict:'id'});if(error){console.warn('Supabase push:',error);setCloudInfo('Erreur de synchronisation : '+error.message);}}
-async function cloudPull(showMsg=true){if(!cloudClient)return;const {data:{session}}=await cloudClient.auth.getSession();if(!session){if(showMsg)alert('Connecte d’abord un compte membre.');return}if(showMsg)setCloudInfo('Synchronisation…');const {data,error}=await cloudClient.from('icc_app_state').select('data').eq('id','main').maybeSingle();if(error){setCloudInfo('Erreur de lecture : '+error.message);return}if(data?.data){const x=data.data;if(x.settings){appSettings=x.settings;saveSettings()}if(Array.isArray(x.poles))poles=x.poles;if(Array.isArray(x.members))members=x.members;if(Array.isArray(x.programs))programs=x.programs;if(Array.isArray(x.solicitations))solicitations=x.solicitations;localStorage.setItem('icc2_poles',JSON.stringify(poles));localStorage.setItem('icc2_members',JSON.stringify(members));localStorage.setItem('icc2_programs',JSON.stringify(programs));localStorage.setItem('icc2_solicitations',JSON.stringify(solicitations));if(x.pilotage&&typeof x.pilotage==='object'){localStorage.setItem('icc2_v30',JSON.stringify(x.pilotage));window.__ICC_V30_STATE=x.pilotage}if(x.postReviews&&typeof x.postReviews==='object'){localStorage.setItem('icc2_post_reviews_v46',JSON.stringify(x.postReviews));window.postReviews=x.postReviews}if(x.evaluations&&typeof x.evaluations==='object'){localStorage.setItem('icc2_evaluations_v47',JSON.stringify(x.evaluations));window.evaluations=x.evaluations}renderAll();if(!Object.prototype.hasOwnProperty.call(x,'pilotage')||!Object.prototype.hasOwnProperty.call(x,'postReviews')||!Object.prototype.hasOwnProperty.call(x,'evaluations'))scheduleCloudPush();}else{await cloudPush();}if(showMsg)setCloudInfo('Synchronisation terminée.',true);}
-async function cloudSignOut(){if(cloudClient)await cloudClient.auth.signOut();setCloudInfo('Déconnecté.');}
+const ICC_DIRTY_KEY='icc2_cloud_dirty_v72';
+const ICC_LAST_SYNC_KEY='icc2_cloud_last_sync_v72';
+let cloudApplying72=false;
+
+/* V73 — Realtime protégé :
+   - mise à jour automatique quand un autre appareil change Supabase ;
+   - aucune lecture cloud pendant qu'une modification locale est en attente ;
+   - debounce pour éviter les rafales d'événements. */
+let realtimeTimer73=null;
+let realtimePending73=false;
+async function handleRealtime73(){
+  clearTimeout(realtimeTimer73);
+  realtimeTimer73=setTimeout(async()=>{
+    let dirty=false;
+    try{dirty=localStorage.getItem(ICC_DIRTY_KEY)==='1'}catch(e){}
+    if(dirty){
+      realtimePending73=true;
+      const ok=await cloudPush();
+      if(ok){
+        realtimePending73=false;
+        setTimeout(()=>cloudPull(false),120);
+      }
+      return;
+    }
+    if(cloudApplying72)return;
+    await cloudPull(false);
+    try{setCloudInfo('Mise à jour reçue en temps réel.',true)}catch(e){}
+  },140);
+}
+window.handleRealtime73=handleRealtime73;
+function scheduleCloudPush(){
+  try{localStorage.setItem(ICC_DIRTY_KEY,'1')}catch(e){}
+  if(!cloudClient)return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer=setTimeout(cloudPush,180);
+}
+async function cloudPush(){
+  if(!cloudClient||cloudApplying72)return;
+  const {data:{session}}=await cloudClient.auth.getSession();
+  if(!session)return;
+  const payload=cloudPayload();
+  const {error}=await cloudClient.from('icc_app_state').upsert({
+    id:'main',data:payload,updated_at:new Date().toISOString()
+  },{onConflict:'id'});
+  if(error){
+    console.warn('Supabase push:',error);
+    try{localStorage.setItem(ICC_DIRTY_KEY,'1')}catch(e){}
+    setCloudInfo('Non synchronisé — tes données restent conservées sur cet appareil. '+error.message);
+    return false;
+  }
+  try{
+    localStorage.setItem(ICC_DIRTY_KEY,'0');
+    localStorage.setItem(ICC_LAST_SYNC_KEY,new Date().toISOString());
+  }catch(e){}
+  setCloudInfo('Données enregistrées dans Supabase.',true);
+  if(realtimePending73){
+    realtimePending73=false;
+    setTimeout(()=>cloudPull(false),120);
+  }
+  return true;
+}
+function mergeUnique72(localArr,cloudArr,keyFn){
+  const map=new Map();
+  (cloudArr||[]).forEach(x=>{if(x!=null)map.set(String(keyFn(x)),x)});
+  (localArr||[]).forEach(x=>{
+    if(x==null)return;
+    const k=String(keyFn(x));
+    const old=map.get(k);
+    if(old&&typeof old==='object'&&typeof x==='object'){
+      const oldTime=Date.parse(old.updatedAt||old.updated_at||old.modifiedAt||0)||0;
+      const newTime=Date.parse(x.updatedAt||x.updated_at||x.modifiedAt||0)||0;
+      map.set(k,newTime>=oldTime?Object.assign({},old,x):Object.assign({},x,old));
+    }else map.set(k,x);
+  });
+  return [...map.values()];
+}
+function mergePoles72(localArr,cloudArr){
+  const seen=new Set(),out=[];
+  [...(cloudArr||[]),...(localArr||[])].forEach(x=>{
+    const v=String(x||'').trim();if(v&&!seen.has(v)){seen.add(v);out.push(v)}
+  });
+  return out;
+}
+async function cloudPull(showMsg=true){
+  if(!cloudClient)return;
+  const {data:{session}}=await cloudClient.auth.getSession();
+  if(!session){if(showMsg)alert('Connecte d’abord un compte membre.');return}
+  if(showMsg)setCloudInfo('Synchronisation…');
+
+  /* Snapshot local AVANT lecture cloud : il ne doit jamais être perdu. */
+  const localSnapshot={
+    settings:JSON.parse(JSON.stringify(appSettings||{})),
+    poles:[...(poles||[])],
+    members:JSON.parse(JSON.stringify(members||[])),
+    programs:JSON.parse(JSON.stringify(programs||[])),
+    solicitations:JSON.parse(JSON.stringify(solicitations||[]))
+  };
+  let dirty=false,hasSynced=false;
+  try{
+    dirty=localStorage.getItem(ICC_DIRTY_KEY)==='1';
+    hasSynced=!!localStorage.getItem(ICC_LAST_SYNC_KEY);
+  }catch(e){}
+
+  const {data,error}=await cloudClient.from('icc_app_state').select('data').eq('id','main').maybeSingle();
+  if(error){
+    setCloudInfo('Cloud indisponible — données locales conservées. '+error.message);
+    return;
+  }
+  if(!data?.data){
+    await cloudPush();
+    if(showMsg)setCloudInfo('Première synchronisation terminée.',true);
+    return;
+  }
+
+  const x=data.data;
+  const protectLocal=dirty||!hasSynced;
+
+  cloudApplying72=true;
+  try{
+    if(protectLocal){
+      /* Première migration ou modification non encore confirmée :
+         UNION non destructive, le local gagne en cas de conflit. */
+      if(x.settings)appSettings=Object.assign({},x.settings,localSnapshot.settings);
+      poles=mergePoles72(localSnapshot.poles,Array.isArray(x.poles)?x.poles:[]);
+      members=mergeUnique72(localSnapshot.members,Array.isArray(x.members)?x.members:[],m=>m.id||m.loginEmail||m.email||m.name);
+      programs=mergeUnique72(localSnapshot.programs,Array.isArray(x.programs)?x.programs:[],p=>p.id||((p.title||'')+'|'+(p.start||'')));
+      solicitations=mergeUnique72(localSnapshot.solicitations,Array.isArray(x.solicitations)?x.solicitations:[],s=>s.id||((s.event||s.title||'')+'|'+(s.date||'')));
+    }else{
+      /* Appareil déjà synchronisé et aucune modification locale en attente :
+         Supabase peut fournir les changements des autres appareils. */
+      if(x.settings)appSettings=x.settings;
+      if(Array.isArray(x.poles))poles=x.poles;
+      if(Array.isArray(x.members))members=x.members;
+      if(Array.isArray(x.programs))programs=x.programs;
+      if(Array.isArray(x.solicitations))solicitations=x.solicitations;
+    }
+
+    localStorage.setItem('icc2_settings',JSON.stringify(appSettings));
+    localStorage.setItem('icc2_poles',JSON.stringify(poles));
+    localStorage.setItem('icc2_members',JSON.stringify(members));
+    localStorage.setItem('icc2_programs',JSON.stringify(programs));
+    localStorage.setItem('icc2_solicitations',JSON.stringify(solicitations));
+
+    if(x.pilotage&&typeof x.pilotage==='object'){
+      if(!localStorage.getItem('icc2_v30')||!protectLocal)localStorage.setItem('icc2_v30',JSON.stringify(x.pilotage));
+      window.__ICC_V30_STATE=JSON.parse(localStorage.getItem('icc2_v30')||'{}');
+    }
+    if(x.postReviews&&typeof x.postReviews==='object'){
+      if(!localStorage.getItem('icc2_post_reviews_v46')||!protectLocal)localStorage.setItem('icc2_post_reviews_v46',JSON.stringify(x.postReviews));
+      window.postReviews=JSON.parse(localStorage.getItem('icc2_post_reviews_v46')||'{}');
+    }
+    if(x.evaluations&&typeof x.evaluations==='object'){
+      if(!localStorage.getItem('icc2_evaluations_v47')||!protectLocal)localStorage.setItem('icc2_evaluations_v47',JSON.stringify(x.evaluations));
+      window.evaluations=JSON.parse(localStorage.getItem('icc2_evaluations_v47')||'{}');
+    }
+  }finally{
+    cloudApplying72=false;
+  }
+
+  renderAll();
+
+  if(protectLocal){
+    /* La fusion devient immédiatement la nouvelle vérité du cloud. */
+    try{localStorage.setItem(ICC_DIRTY_KEY,'1')}catch(e){}
+    await cloudPush();
+  }else{
+    try{
+      localStorage.setItem(ICC_LAST_SYNC_KEY,new Date().toISOString());
+      localStorage.setItem(ICC_DIRTY_KEY,'0');
+    }catch(e){}
+  }
+
+  if(showMsg)setCloudInfo('Synchronisation terminée — aucune donnée locale supprimée.',true);
+}
+async function cloudSignOut(){
+  try{if(cloudRealtime&&cloudClient){await cloudClient.removeChannel(cloudRealtime);cloudRealtime=null}}catch(e){}
+  if(cloudClient)await cloudClient.auth.signOut();
+  setCloudInfo('Déconnecté.');
+}
 function downloadSupabaseSQL(){const sql=`-- ICC LE MANS V7 — à exécuter dans Supabase > SQL Editor
 create table if not exists public.icc_app_state (
   id text primary key,
@@ -877,7 +1052,11 @@ create policy "authenticated update" on public.icc_app_state for update to authe
 const _oldRenderSettings=renderSettings;
 renderSettings=function(){_oldRenderSettings();const c=cloudCfg();const u=document.getElementById('cloud-url'),a=document.getElementById('cloud-anon');if(u)u.value=c.url||'';if(a)a.value=c.anon||'';setCloudInfo(cloudClient?'Supabase configuré.':'Mode local — aucune base partagée configurée.');};
 const _oldPersist=persist;
-persist=function(){_oldPersist();scheduleCloudPush();};
+persist=function(){
+  _oldPersist();
+  try{localStorage.setItem(ICC_DIRTY_KEY,'1')}catch(e){}
+  scheduleCloudPush();
+};
 window.addEventListener('load',()=>setTimeout(initCloud,300));
 
 
@@ -904,7 +1083,11 @@ window.addEventListener('load',()=>setTimeout(initCloud,300));
   };
   const permissionGroups=[['Planning',['planning.view']],['Programmes',['programmes.view','programmes.edit','programmes.edit_scope']],['Trombinoscope',['trombinoscope.view','trombinoscope.manage']],['Formation',['formations.view']],['Pôles',['poles.view','poles.manage']],['Sollicitations',['solicitations.create','solicitations.manage_scope','solicitations.manage']],['Paramètres',['settings.structure','settings.members','settings.permissions']],['Notifications',['notifications.view','notifications.manage']],['Exports / pilotage',['exports.use','archives.view','kpi.view']],['Évaluations',['evaluations.view_own','evaluations.manage_scope','evaluations.manage']],['Pilotage & suivi',['pilotage.view','pilotage.manage','disponibilites.manage','historique.view']]];
 
-  function v9Save(){localStorage.setItem(V9,JSON.stringify({settings:appSettings,poles,members,programs,solicitations}));}
+  function v9Save(){
+    localStorage.setItem(V9,JSON.stringify({settings:appSettings,poles,members,programs,solicitations}));
+    try{localStorage.setItem('icc2_cloud_dirty_v72','1')}catch(e){}
+    if(typeof scheduleCloudPush==='function')scheduleCloudPush();
+  }
   function v9Load(){try{return JSON.parse(localStorage.getItem(V9)||'null')}catch(e){return null}}
   const stored=v9Load();
   if(stored){
@@ -2269,7 +2452,19 @@ window.addEventListener('load',()=>setTimeout(initCloud,300));
     });
     if(!appSettings.v49PermInit){appSettings.v49PermInit=true;try{saveAll?.()}catch(e){try{persist?.()}catch(_){}}}
   }
-  function has(k){if(localStorage.getItem('icc2_admin_override')==='1')return true;ensure();return (appSettings.permissions?.[role]||[]).includes(k)}
+  function has(k){
+    if(localStorage.getItem('icc2_admin_override')==='1')return true;
+    ensure();
+    const perms=appSettings.permissions?.[role]||[];
+    if(perms.includes(k))return true;
+    /* Compatibilité des anciens noms de droits */
+    if(k==='members.manage')return perms.includes('settings.members')||perms.includes('trombinoscope.manage');
+    if(k==='members.status')return perms.includes('settings.members')||perms.includes('trombinoscope.manage');
+    if(k==='members.delete')return perms.includes('settings.members')||perms.includes('trombinoscope.manage');
+    if(k==='programmes.create')return perms.includes('programmes.edit')||perms.includes('programmes.edit_scope');
+    if(k==='solicitations.accept')return perms.includes('solicitations.manage')||perms.includes('solicitations.manage_scope');
+    return false;
+  }
   function requirePerm(k,label){if(has(k))return true;alert('Accès refusé : '+(label||'cette action')+'.\n\nVotre rôle actuel est « '+(roleLabels[role]||role)+' ».');return false}
   function canAny(...ks){return ks.some(has)}
   window.v49HasPermission=has;
