@@ -1,7 +1,0 @@
-V72 — Protection des données
-- Fusion non destructive entre appareil et Supabase.
-- Les pôles, membres et programmes locaux ne sont plus écrasés par une ancienne copie cloud.
-- Une création locale est marquée à synchroniser immédiatement.
-- Si Supabase échoue, les données locales restent visibles après rafraîchissement.
-- Correction du droit de création/modification des membres.
-- Aucun changement visuel.
