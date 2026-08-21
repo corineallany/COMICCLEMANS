@@ -1,7 +1,0 @@
-V73 — Supabase Realtime sécurisé
-- Tous les appareils connectés au même Supabase reçoivent automatiquement les changements.
-- Pôles, membres, programmes, sollicitations et état partagé se mettent à jour sans rafraîchir.
-- Si l'appareil possède une modification locale non encore synchronisée, le pull Realtime est différé.
-- La modification locale est d'abord envoyée, puis le cloud est relu.
-- Conservation de toutes les protections anti-écrasement V72.
-- Aucun changement visuel.
