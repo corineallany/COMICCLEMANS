@@ -1,0 +1,58 @@
+COM ICC Le Mans — V71 Notifications Push
+
+1) GITHUB
+Téléverse tous les fichiers/dossiers de ce pack à la racine du dépôt :
+index.html
+manifest.webmanifest
+sw.js
+push.js
+icons/
+supabase_v71_push.sql
+supabase/functions/send-push/
+
+2) SUPABASE SQL
+SQL Editor > New query
+Copie/colle le contenu de supabase_v71_push.sql puis Run.
+
+3) GÉNÉRER LES CLÉS VAPID
+Sur ton ordinateur, avec Node.js :
+npx web-push generate-vapid-keys
+
+Tu obtiendras :
+Public Key
+Private Key
+
+4) HTML
+Dans index.html, cherche :
+A_REMPLACER_PAR_LA_CLE_VAPID_PUBLIQUE
+et remplace uniquement cette valeur par la Public Key.
+NE JAMAIS mettre la Private Key dans index.html.
+
+5) SUPABASE EDGE FUNCTION
+Installe le CLI Supabase puis lie ton projet :
+supabase login
+supabase link --project-ref TON_PROJECT_REF
+
+Déploie :
+supabase functions deploy send-push
+
+Ajoute les secrets :
+supabase secrets set VAPID_PUBLIC_KEY="TA_PUBLIC_KEY"
+supabase secrets set VAPID_PRIVATE_KEY="TA_PRIVATE_KEY"
+supabase secrets set VAPID_SUBJECT="mailto:TON_EMAIL"
+
+6) REDÉPLOIEMENT GITHUB PAGES
+Commit les changements et attends que Pages soit vert.
+
+7) IPHONE
+COM Le Mans doit d'abord être ajoutée à l'écran d'accueil.
+Ouvre l'app > Paramètres > Notifications téléphone > Activer.
+Accepte la demande iOS.
+
+8) ANDROID
+Ouvre la PWA installée > Paramètres > Notifications téléphone > Activer.
+
+La nouvelle icône est jaune avec le texte COM LE MANS.
+
+IMPORTANT
+Le système push ne peut pas fonctionner avant les étapes VAPID + Edge Function.
