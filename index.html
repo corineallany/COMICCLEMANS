@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ICC Le Mans — COM ICC Le Mans — V76 Persistance corrigée</title>
+<title>ICC Le Mans — COM ICC Le Mans — V77 Persistance corrigée</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -46,7 +46,7 @@ iccBlue:'#1d4ed8',iccGreen:'#059669'
 /* V71 PUSH CONFIG
    Remplace la valeur ci-dessous par la clé publique VAPID générée pour Supabase.
    Ne mets JAMAIS la clé privée ici. */
-window.ICC_VAPID_PUBLIC_KEY = 'BCjfSNO04VflQMKhF4LIbd2v8XqO0CcYKRKcfy34UGs0EExlxEMnLG76PPEQSxJVsNSO1hhpsd2fnjYnALrHXPk';
+window.ICC_VAPID_PUBLIC_KEY = 'A_REMPLACER_PAR_LA_CLE_VAPID_PUBLIQUE';
 </script>
 <script src="./push.js" defer></script>
 
@@ -4848,6 +4848,290 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(mf)mf.onsubmit=window.saveMember;
   if(pf)pf.onsubmit=window.saveProgram;
 });
+})();
+</script>
+
+
+<script id="icc-v77-unified-cloud-final">
+(function(){
+'use strict';
+
+/*
+ V77 — source commune et récupération non destructive
+ ----------------------------------------------------
+ 1) récupère les anciennes copies locales avant toute synchro ;
+ 2) ne remplace jamais brutalement membres/programmes/pôles/sollicitations ;
+ 3) fusionne local + anciens caches + Supabase ;
+ 4) relie automatiquement le compte Supabase au profil par authUserId ou e-mail ;
+ 5) rebinde l'abonnement push au bon profil après connexion ;
+ 6) conserve une sauvegarde locale avant toute fusion.
+*/
+
+const V77_BACKUP='icc2_backup_v77';
+const V77_REMOTE='icc2_last_remote_v77';
+const V77_SYNC='icc2_last_good_sync_v77';
+
+const clone77=x=>{try{return JSON.parse(JSON.stringify(x))}catch(e){return x}};
+const norm77=x=>String(x??'').trim().toLowerCase();
+
+function time77(x){
+  const d=Date.parse(x?.updatedAt||x?.updated_at||x?.modifiedAt||x?.createdAt||x?.created_at||0);
+  return Number.isFinite(d)?d:0;
+}
+function richness77(x){
+  if(!x||typeof x!=='object')return 0;
+  let n=0;
+  for(const [k,v] of Object.entries(x)){
+    if(v===null||v===undefined||v===''||v===false)continue;
+    if(Array.isArray(v))n+=v.length?2:0;
+    else if(typeof v==='object')n+=Object.keys(v).length?2:0;
+    else n++;
+  }
+  return n;
+}
+function prefer77(a,b){
+  if(!a)return clone77(b);
+  if(!b)return clone77(a);
+  const ta=time77(a),tb=time77(b);
+  let winner;
+  if(tb>ta)winner=b;
+  else if(ta>tb)winner=a;
+  else winner=richness77(b)>richness77(a)?b:a;
+  return Object.assign({},clone77(a),clone77(b),clone77(winner));
+}
+function mergeBy77(groups,keyFn){
+  const map=new Map();
+  for(const arr of groups){
+    for(const x of (Array.isArray(arr)?arr:[])){
+      if(!x)continue;
+      const k=String(keyFn(x)||'').trim();
+      if(!k)continue;
+      map.set(k,prefer77(map.get(k),x));
+    }
+  }
+  return [...map.values()];
+}
+function mergeMembers77(groups){
+  let arr=mergeBy77(groups,m=>m.id||norm77(m.loginEmail||m.email)||m.name);
+  /* deuxième passage : évite deux fiches portant le même email de connexion */
+  const byEmail=new Map(), without=[];
+  for(const m of arr){
+    const e=norm77(m.loginEmail||m.email);
+    if(!e){without.push(m);continue}
+    byEmail.set(e,prefer77(byEmail.get(e),m));
+  }
+  const emails=[...byEmail.values()];
+  const ids=new Set(emails.map(m=>String(m.id||'')));
+  return [...emails,...without.filter(m=>!ids.has(String(m.id||'')))];
+}
+function mergePoles77(groups){
+  const out=[],seen=new Set();
+  for(const arr of groups){
+    for(const p of (Array.isArray(arr)?arr:[])){
+      const v=String(p||'').trim(); if(!v)continue;
+      const k=norm77(v); if(seen.has(k))continue;
+      seen.add(k);out.push(v);
+    }
+  }
+  return out;
+}
+function readJSON77(key){
+  try{return JSON.parse(localStorage.getItem(key)||'null')}catch(e){return null}
+}
+function localSources77(){
+  const v9=readJSON77('icc_v9')||{},v21=readJSON77('icc_v21')||{},v22=readJSON77('icc_v22')||{};
+  return {
+    settings:[
+      clone77(typeof appSettings!=='undefined'?appSettings:{}),
+      readJSON77('icc2_settings')||{},v9.settings||{},v21.settings||{},v22.settings||{}
+    ],
+    poles:[
+      clone77(typeof poles!=='undefined'?poles:[]),
+      readJSON77('icc2_poles')||[],v9.poles||[],v21.poles||[],v22.poles||[]
+    ],
+    members:[
+      clone77(typeof members!=='undefined'?members:[]),
+      readJSON77('icc2_members')||[],v9.members||[],v21.members||[],v22.members||[]
+    ],
+    programs:[
+      clone77(typeof programs!=='undefined'?programs:[]),
+      readJSON77('icc2_programs')||[],v9.programs||[],v21.programs||[],v22.programs||[]
+    ],
+    solicitations:[
+      clone77(typeof solicitations!=='undefined'?solicitations:[]),
+      readJSON77('icc2_solicitations')||[],v9.solicitations||[],v21.solicitations||[],v22.solicitations||[]
+    ]
+  };
+}
+function mergedSettings77(groups){
+  let r={};
+  for(const g of groups)if(g&&typeof g==='object')r=Object.assign(r,clone77(g));
+  /* Préserve les structures imbriquées qui contiennent les droits et métadonnées */
+  r.poleMeta=Object.assign({},...(groups.filter(Boolean).map(x=>x.poleMeta||{})));
+  r.permissions=Object.assign({},...(groups.filter(Boolean).map(x=>x.permissions||{})));
+  r.groupLeads=Object.assign({},...(groups.filter(Boolean).map(x=>x.groupLeads||{})));
+  return r;
+}
+function writeCanonical77(){
+  localStorage.setItem('icc2_settings',JSON.stringify(appSettings||{}));
+  localStorage.setItem('icc2_poles',JSON.stringify(poles||[]));
+  localStorage.setItem('icc2_members',JSON.stringify(members||[]));
+  localStorage.setItem('icc2_programs',JSON.stringify(programs||[]));
+  localStorage.setItem('icc2_solicitations',JSON.stringify(solicitations||[]));
+  const mirror={settings:appSettings,poles,members,programs,solicitations};
+  localStorage.setItem('icc_v9',JSON.stringify(mirror));
+  localStorage.setItem('icc_v21',JSON.stringify(mirror));
+  localStorage.setItem('icc_v22',JSON.stringify(mirror));
+}
+function backup77(label){
+  try{
+    localStorage.setItem(V77_BACKUP,JSON.stringify({
+      at:new Date().toISOString(),label,
+      settings:appSettings,poles,members,programs,solicitations
+    }));
+  }catch(e){console.warn('V77 backup',e)}
+}
+function rescueLocal77(){
+  const s=localSources77();
+  backup77('avant récupération V77');
+  appSettings=mergedSettings77(s.settings);
+  poles=mergePoles77(s.poles);
+  members=mergeMembers77(s.members);
+  programs=mergeBy77(s.programs,p=>p.id||((p.title||'')+'|'+(p.start||'')));
+  solicitations=mergeBy77(s.solicitations,x=>x.id||((x.event||x.title||'')+'|'+(x.date||'')));
+  writeCanonical77();
+  try{localStorage.setItem('icc2_cloud_dirty_v72','1')}catch(e){}
+}
+window.v77RescueLocal=rescueLocal77;
+
+/* Effectuée immédiatement avant initCloud(load + 300ms). */
+try{rescueLocal77()}catch(e){console.error('V77 local rescue',e)}
+
+/* Pull FINAL : UNION systématique. Aucune ancienne copie cloud ne peut supprimer une donnée locale. */
+window.cloudPull=async function(showMsg=true){
+  if(!cloudClient)return false;
+  const {data:{session}}=await cloudClient.auth.getSession();
+  if(!session){if(showMsg)alert('Connecte d’abord un compte membre.');return false}
+  if(showMsg)setCloudInfo('Synchronisation sécurisée…');
+  backup77('avant lecture Supabase');
+
+  const {data,error}=await cloudClient.from('icc_app_state').select('data,updated_at').eq('id','main').maybeSingle();
+  if(error){
+    setCloudInfo('Lecture Supabase impossible — aucune donnée locale supprimée. '+error.message);
+    return false;
+  }
+  const remote=data?.data||{};
+  try{localStorage.setItem(V77_REMOTE,JSON.stringify({at:data?.updated_at||new Date().toISOString(),data:remote}))}catch(e){}
+
+  const s=localSources77();
+  const settingsGroups=[remote.settings||{},...s.settings];
+  appSettings=mergedSettings77(settingsGroups);
+  poles=mergePoles77([remote.poles||[],...s.poles]);
+  members=mergeMembers77([remote.members||[],...s.members]);
+  programs=mergeBy77([remote.programs||[],...s.programs],p=>p.id||((p.title||'')+'|'+(p.start||'')));
+  solicitations=mergeBy77([remote.solicitations||[],...s.solicitations],x=>x.id||((x.event||x.title||'')+'|'+(x.date||'')));
+
+  /* Données opérationnelles complémentaires : cloud si disponible, sinon local. */
+  if(remote.pilotage&&typeof remote.pilotage==='object'){
+    const local=readJSON77('icc2_v30')||{};
+    localStorage.setItem('icc2_v30',JSON.stringify(Object.assign({},remote.pilotage,local)));
+    window.__ICC_V30_STATE=readJSON77('icc2_v30')||{};
+  }
+  if(remote.postReviews&&typeof remote.postReviews==='object'){
+    const local=readJSON77('icc2_post_reviews_v46')||{};
+    localStorage.setItem('icc2_post_reviews_v46',JSON.stringify(Object.assign({},remote.postReviews,local)));
+    window.postReviews=readJSON77('icc2_post_reviews_v46')||{};
+  }
+  if(remote.evaluations&&typeof remote.evaluations==='object'){
+    const local=readJSON77('icc2_evaluations_v47')||{};
+    localStorage.setItem('icc2_evaluations_v47',JSON.stringify(Object.assign({},remote.evaluations,local)));
+    window.evaluations=readJSON77('icc2_evaluations_v47')||{};
+  }
+
+  writeCanonical77();
+  try{localStorage.setItem('icc2_cloud_dirty_v72','1')}catch(e){}
+  try{if(typeof renderAll==='function')renderAll()}catch(e){}
+
+  /* La fusion complète devient la nouvelle copie commune. */
+  const ok=typeof cloudPush==='function'?await cloudPush():false;
+  if(ok){
+    try{localStorage.setItem(V77_SYNC,new Date().toISOString())}catch(e){}
+    setCloudInfo('Synchronisé : téléphone et ordinateur utilisent la même base.',true);
+  }else{
+    setCloudInfo('Fusion conservée localement ; envoi Supabase en attente.');
+  }
+  return !!ok;
+};
+try{cloudPull=window.cloudPull}catch(e){}
+
+/* Liaison profil finale */
+async function linkProfile77(session){
+  if(!session?.user)return null;
+  const uid=String(session.user.id||''),email=norm77(session.user.email);
+  let me=(members||[]).find(m=>String(m.authUserId||m.user_id||'')===uid)
+      ||(members||[]).find(m=>norm77(m.loginEmail||m.email)===email);
+
+  /* Si cet appareil avait déjà un profil sélectionné, on ne le relie que si son email
+     est vide ou correspond — jamais à un autre compte. */
+  if(!me){
+    const oldId=localStorage.getItem('icc2_member_id')||'';
+    const candidate=(members||[]).find(m=>String(m.id)===String(oldId));
+    const ce=norm77(candidate?.loginEmail||candidate?.email);
+    if(candidate && (!ce || ce===email))me=candidate;
+  }
+  if(me){
+    let changed=false;
+    if(!me.authUserId){me.authUserId=uid;changed=true}
+    if(email&&!norm77(me.loginEmail||me.email)){me.loginEmail=email;changed=true}
+    if(changed){me.updatedAt=new Date().toISOString();writeCanonical77();try{localStorage.setItem('icc2_cloud_dirty_v72','1')}catch(e){}}
+    localStorage.setItem('icc2_member_id',me.id);
+    role=me.role||role||'equipier';
+    localStorage.setItem('icc2_role',role);
+    const rs=document.getElementById('role-select');if(rs)rs.value=role;
+    if(changed&&typeof cloudPush==='function')setTimeout(()=>cloudPush(),0);
+    setTimeout(()=>{try{window.v77RefreshPushBinding?.()}catch(e){}},100);
+    return me;
+  }
+  localStorage.removeItem('icc2_member_id');
+  return null;
+}
+window.v77LinkProfile=linkProfile77;
+
+window.cloudAfterLogin=async function(){
+  cloudReady=true;
+  setCloudInfo('Connecté — récupération et fusion des données…',true);
+  const session=(await cloudClient.auth.getSession()).data.session;
+  if(!session)return;
+  await window.cloudPull(false);
+  const me=await linkProfile77(session);
+  const email=norm77(session.user?.email);
+  const isAdmin=typeof iccIsAdminEmail==='function'&&iccIsAdminEmail(email);
+  localStorage.setItem('icc2_admin_override',isAdmin?'1':'0');
+  if(isAdmin){
+    role='responsable';localStorage.setItem('icc2_role',role);
+    const rs=document.getElementById('role-select');if(rs)rs.value=role;
+  }
+
+  /* Realtime : tout changement distant repasse par la fusion V77. */
+  try{
+    if(cloudRealtime&&cloudClient){await cloudClient.removeChannel(cloudRealtime);cloudRealtime=null}
+    cloudRealtime=cloudClient.channel('icc-main-live-v77')
+      .on('postgres_changes',{event:'*',schema:'public',table:'icc_app_state',filter:'id=eq.main'},
+          ()=>setTimeout(()=>window.cloudPull(false),120))
+      .subscribe();
+  }catch(e){console.warn('V77 realtime',e)}
+
+  if(isAdmin && me)setCloudInfo('Connectée en tant qu’admin — profil '+(typeof fullName==='function'?fullName(me):me.name||'lié')+' synchronisé.',true);
+  else if(isAdmin)setCloudInfo('Connectée en tant qu’admin. Les données sont synchronisées ; associe ton e-mail à ta fiche pour le profil personnel.',true);
+  else if(me)setCloudInfo('Connecté en tant que '+(typeof fullName==='function'?fullName(me):me.name||'membre')+'.',true);
+  else setCloudInfo('Compte connecté, mais aucune fiche membre avec cet e-mail. Les données sont conservées ; renseigne cet e-mail dans la fiche membre.',false);
+  try{if(typeof renderAll==='function')renderAll()}catch(e){}
+};
+try{cloudAfterLogin=window.cloudAfterLogin}catch(e){}
+
+/* Un clic "Synchroniser maintenant" doit utiliser le moteur final. */
+window.v77ForceSync=()=>window.cloudPull(true);
+
 })();
 </script>
 
