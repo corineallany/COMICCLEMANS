@@ -10346,6 +10346,452 @@ console.info('ICC V87 sollicitations/services clean chargé');
 })();
 </script>
 
+
+<style id="icc-v88-css">
+.v88-target-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.v88-target-tab{border:1px solid #d8dee9;background:#fff;border-radius:12px;padding:9px;font-size:11px;font-weight:900}
+.v88-target-tab.active{background:#4c1d95;color:#fff;border-color:#4c1d95}
+.v88-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.v88-iconbtn{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;background:#fff;font-size:14px}
+.v88-iconbtn:hover{background:#f8fafc}
+.v88-scope{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;margin-right:6px}
+.v88-personal{background:#ede9fe;color:#6d28d9}
+.v88-pole{background:#dbeafe;color:#1d4ed8}
+.v88-com{background:#dcfce7;color:#15803d}
+#v84-dashboard{min-height:190px}
+</style>
+<script id="icc-v88-controller">
+(function(){
+'use strict';
+
+const E88=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const me88=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
+const mid88=()=>String(me88()?.id||'');
+const mname88=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
+const myPoles88=()=>new Set([...(me88()?.poles||[]),...(me88()?.refPoles||[])].map(String));
+
+function isAdmin88(){try{return typeof iccTechAdminRoot==='function'&&iccTechAdminRoot()}catch(e){return false}}
+function isDirection88(){
+ const id=mid88();return isAdmin88()||String(appSettings?.responsableId||'')===id||String(appSettings?.adjointId||'')===id;
+}
+
+/* ======= SOLLICITATIONS : PERSONNE / PÔLE / COM ======= */
+function targetMode88(){
+ return document.getElementById('sol-target-type')?.value||'person';
+}
+function setTargetMode88(type){
+ const sel=document.getElementById('sol-target-type');if(sel)sel.value=type;
+ document.querySelectorAll('.v88-target-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
+ if(typeof sortSolicitationForm87==='function')sortSolicitationForm87();
+ else if(typeof populateSolTargetsV9==='function')populateSolTargetsV9();
+ setTimeout(()=>{if(typeof sortSolicitationForm87==='function')sortSolicitationForm87()},0);
+}
+window.v88SetTargetMode=setTargetMode88;
+
+function enhanceTargetSelector88(){
+ const sel=document.getElementById('sol-target-type');if(!sel)return;
+ sel.style.display='none';
+ if(document.getElementById('v88-target-tabs'))return;
+ const tabs=document.createElement('div');tabs.id='v88-target-tabs';tabs.className='v88-target-tabs';
+ tabs.innerHTML=`
+  <button type="button" class="v88-target-tab" data-type="person" onclick="v88SetTargetMode('person')">👤 Personne</button>
+  <button type="button" class="v88-target-tab" data-type="pole" onclick="v88SetTargetMode('pole')">🗂️ Pôle</button>
+  <button type="button" class="v88-target-tab" data-type="com" onclick="v88SetTargetMode('com')">🌐 Toute la Com</button>`;
+ sel.parentElement?.insertBefore(tabs,sel.nextSibling);
+ setTargetMode88(sel.value||'person');
+}
+
+/* ======= PORTÉE D'UNE ALERTE ======= */
+function solScope88(s){
+ let ts=Array.isArray(s?.targets)?s.targets:[];
+ if(!ts.length&&s?.targetType)ts=[{type:s.targetType,value:s.target}];
+ if(ts.some(t=>t?.type==='com')||s?.targetType==='com'||String(s?.target||'').toLowerCase()==='toute la communication')return 'com';
+ if(ts.some(t=>t?.type==='person'&&String(t.value)===mid88()))return 'personal';
+ const p=myPoles88();
+ if(ts.some(t=>t?.type==='pole'&&p.has(String(t.value))))return 'pole';
+ return 'personal';
+}
+function progScope88(p){
+ if(p?.allCommunication===true||p?.audience==='com'||p?.scope==='com'||p?.targetType==='com')return 'com';
+ if((p?.memberIds||[]).map(String).includes(mid88())||Object.values(p?.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(mid88())))return 'personal';
+ const ps=myPoles88();if((p?.poles||[]).some(x=>ps.has(String(x))))return 'pole';
+ return 'personal';
+}
+function scopeBadge88(x){
+ const s=x.k==='p'?progScope88(x.raw):solScope88(x.raw);
+ const map={personal:['PERSONNEL','v88-personal'],pole:['PÔLE','v88-pole'],com:['COM','v88-com']};
+ return `<span class="v88-scope ${map[s][1]}">${map[s][0]}</span>`;
+}
+
+/* ======= COMPTEUR NON LU STABLE ======= */
+function readStore88(){
+ try{
+  const obj=JSON.parse(localStorage.getItem('icc_v88_seen_'+mid88())||'{}')||{};
+  return obj;
+ }catch(e){return {}}
+}
+function saveReadStore88(o){localStorage.setItem('icc_v88_seen_'+mid88(),JSON.stringify(o))}
+function itemVersion88(x){return String(x.raw?.updatedAt||x.raw?.updated_at||x.raw?.createdAt||x.raw?.date||'')}
+function isSeen88(x){
+ const st=readStore88(),rec=st[(x.k+':'+x.id)];
+ return !!rec && rec.version===itemVersion88(x);
+}
+function markSeen88(x){
+ const st=readStore88();st[x.k+':'+x.id]={version:itemVersion88(x),seenAt:new Date().toISOString()};saveReadStore88(st);
+ updateBell88();
+}
+function unreadItems88(){return items84().filter(x=>!isSeen88(x))}
+function updateBell88(){
+ const n=unreadItems88().length,b=document.getElementById('notif-badge');
+ if(b){b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
+}
+
+/* ======= ARCHIVE / CORBEILLE ======= */
+function canDeleteOwn88(x){
+ if(isDirection88())return true;
+ if(x.k==='s')return String(x.raw?.fromMemberId||x.raw?.createdByMemberId||'')===mid88();
+ if(x.k==='p')return String(x.raw?.createdByMemberId||x.raw?.ownerMemberId||'')===mid88();
+ return false;
+}
+async function sync88(){
+ if(typeof iccStrictSync83==='function')return await iccStrictSync83('v88');
+ if(typeof cloudPush==='function')return await cloudPush('v88');
+ return false;
+}
+window.v88ArchiveItem=async function(k,id){
+ const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x||!canDeleteOwn88(x))return alert('Accès refusé.');
+ x.raw.archived=true;x.raw.deleted=false;x.raw.archivedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();
+ try{persist?.()}catch(e){}
+ await sync88();renderNotifications();if(typeof dashboard84==='function')dashboard84();
+};
+window.v88TrashItem=async function(k,id){
+ const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x||!canDeleteOwn88(x))return alert('Accès refusé.');
+ if(!confirm('Déplacer cet élément dans la corbeille ?'))return;
+ x.raw.deleted=true;x.raw.archived=false;x.raw.deletedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();
+ try{persist?.()}catch(e){}
+ await sync88();renderNotifications();if(typeof dashboard84==='function')dashboard84();
+};
+
+/* ======= DROIT DE RÉPONSE ======= */
+function canRespondSol88(s){
+ if(isAdmin88())return true;
+ let ts=Array.isArray(s?.targets)?s.targets:[];
+ if(!ts.length&&s?.targetType)ts=[{type:s.targetType,value:s.target}];
+ const ps=myPoles88();
+ return ts.some(t=>{
+  if(t?.type==='com')return true;
+  if(t?.type==='person')return String(t.value)===mid88();
+  if(t?.type==='pole')return ps.has(String(t.value));
+  return false;
+ });
+}
+window.v83AnswerSolicitation=function(id,status){
+ const s=(solicitations||[]).find(x=>String(x.id)===String(id));
+ if(!s||!canRespondSol88(s))return alert('Tu peux consulter cette demande parce que tu l’as créée, mais seul un destinataire concerné peut y répondre.');
+ let m=document.getElementById('v83-sol-answer');
+ if(!m){m=document.createElement('div');m.id='v83-sol-answer';m.className='modal hidden fixed inset-0 z-[190] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const lab=status==='partial'?'Réserve':'Motif / commentaire';
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><h3 class="font-black">${status==='accepted'?'Accepter':status==='partial'?'Accepter partiellement':'Refuser'} — ${E88(s.event||'Sollicitation')}</h3><button onclick="closeModal('v83-sol-answer')">✕</button></div><div class="p-5"><label class="text-xs font-bold">${lab} — facultatif<textarea id="v83-sol-note" class="field" rows="3"></textarea></label><button class="v81-primary mt-4" onclick="v83CommitSolAnswer('${E88(id)}','${status}')">Confirmer</button></div></div>`;
+ openModal('v83-sol-answer');
+};
+
+/* ======= NOTIFICATIONS CLIQUABLES + ACTIONS ======= */
+window.renderNotifications=function(){
+ const list=document.getElementById('notification-list');if(!list)return;
+ const all=items84(),un=all.filter(x=>!isSeen88(x)),rd=all.filter(x=>isSeen88(x));
+ const card=x=>{
+  const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);
+  const canAct=canDeleteOwn88(x);
+  return `<div class="v84-item ${isSeen88(x)?'v84-read':'v84-unread'} mb-2">
+    <button class="w-full text-left" onclick="v88OpenItem('${x.k}','${E88(x.id)}')">
+      ${scopeBadge88(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
+      <b class="block mt-1">${E88(x.title)}</b>
+      <p class="text-[10px] text-slate-500">${E88(String(x.date).replace('T',' '))}${x.location?' · '+E88(x.location):''}</p>
+      ${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E88(r.reserve)}</div>`:''}
+      ${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E88(r.reason)}</div>`:''}
+    </button>
+    ${canAct?`<div class="v88-actions"><button class="v88-iconbtn" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E88(x.id)}')">📦</button><button class="v88-iconbtn" title="Corbeille" onclick="v88TrashItem('${x.k}','${E88(x.id)}')">🗑️</button></div>`:''}
+  </div>`;
+ };
+ list.innerHTML=`<h4 class="text-xs font-black text-iccViolet mb-2">Nouveaux (${un.length})</h4>${un.map(card).join('')||'<p class="text-xs text-slate-400 mb-3">Aucun nouvel élément.</p>'}<h4 class="text-xs font-black text-slate-500 mt-4 mb-2">Programmes et sollicitations vus</h4>${rd.map(card).join('')||'<p class="text-xs text-slate-400">Aucun élément vu.</p>'}`;
+ updateBell88();
+};
+window.v88OpenItem=function(k,id){
+ const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x)return;
+ markSeen88(x);renderNotifications();if(typeof openDetail84==='function')openDetail84(x);else if(typeof v84OpenItem==='function')v84OpenItem(k,id);
+};
+
+/* ======= MES SERVICES : ARCHIVE / CORBEILLE ======= */
+function patchServices88(){
+ window.v87OpenServices=function(){
+  let modal=document.getElementById('v87-services-modal');
+  if(!modal){modal=document.createElement('div');modal.id='v87-services-modal';modal.className='modal hidden fixed inset-0 flex items-center justify-center p-4';document.body.appendChild(modal)}
+  const all=items84().filter(x=>finalStatus84(status84(x))&&!x.raw.archived&&!x.raw.deleted);
+  modal.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10"><div><h3 class="font-black">Mes services</h3><p class="text-xs">Clique sur une fiche pour ouvrir son détail.</p></div><button onclick="closeModal('v87-services-modal')">✕</button></div><div class="p-4 space-y-2">${all.map(x=>`<article class="v87-service" onclick="v87OpenServiceDetail('${x.k}','${E88(x.id)}')"><div class="flex justify-between gap-3"><div>${scopeBadge88(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E88(x.title)}</b><small>${E88(x.date||'')} · ${E88(status84(x))}</small></div>${canDeleteOwn88(x)?`<div class="v88-actions" onclick="event.stopPropagation()"><button class="v88-iconbtn" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E88(x.id)}')">📦</button><button class="v88-iconbtn" title="Corbeille" onclick="v88TrashItem('${x.k}','${E88(x.id)}')">🗑️</button></div>`:''}</div></article>`).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}</div></div>`;
+  openModal('v87-services-modal');
+ };
+ window.v84OpenServices=window.v87OpenServices;
+}
+patchServices88();
+
+/* ======= TABLEAU DE BORD FIXE ======= */
+function hardDashboard88(){
+ const home=document.getElementById('page-home');if(!home)return;
+ document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>{x.style.display='none';x.remove?.()});
+ let b=document.getElementById('v84-dashboard');
+ if(!b){b=document.createElement('section');b.id='v84-dashboard';b.className='bg-white border rounded-3xl p-5';home.appendChild(b)}
+ b.style.display='';
+ const pend=pending84(),train=(typeof trainingMine83==='function'?trainingMine83():[]),active=(typeof activeNow83==='function'?activeNow83():(members||[]).filter(m=>m.status==='active'&&!m.archived&&!m.deleted));
+ b.innerHTML=`<div class="v84-dash-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v84-btn" onclick="v84OpenPlanning()">📅 Mon planning</button></div><div class="v84-dash-grid"><button class="v84-dash-card" onclick="v84OpenInbox()"><span>🔔</span><b>${pend.length}</b><small>Sollicitations et programmes en attente</small></button><button class="v84-dash-card" onclick="v87OpenServices()"><span>✅</span><b>${items84().filter(x=>finalStatus84(status84(x))).length}</b><small>Mes services</small></button><button class="v84-dash-card" onclick="showPage('formations')"><span>🎓</span><b>${train.length}</b><small>Membres en formation</small></button><button class="v84-dash-card" onclick="v83ShowActive?.()"><span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small></button></div>`;
+}
+
+/* Observer uniquement le dashboard : si une ancienne couche le remplace, V88 le remet. */
+let dashGuard88=false;
+const dashObs88=new MutationObserver(()=>{
+ if(dashGuard88)return;
+ dashGuard88=true;
+ requestAnimationFrame(()=>{hardDashboard88();dashGuard88=false});
+});
+window.addEventListener('load',()=>setTimeout(()=>{
+ hardDashboard88();updateBell88();
+ const home=document.getElementById('page-home');if(home)dashObs88.observe(home,{childList:true,subtree:false});
+},1800));
+
+const show88=window.showPage;
+window.showPage=function(id){const r=show88?.apply(this,arguments);setTimeout(()=>{if(id==='home')hardDashboard88();if(id==='sollicitations')enhanceTargetSelector88();updateBell88()},80);return r};
+try{showPage=window.showPage}catch(e){}
+
+const openSol88=window.openSolicitation;
+window.openSolicitation=function(){const r=openSol88?.apply(this,arguments);setTimeout(()=>{enhanceTargetSelector88()},120);return r};
+
+setInterval(updateBell88,8000);
+
+console.info('ICC V88 chargé');
+})();
+</script>
+
+
+<style id="icc-v89-css">
+#v89-pending-modal{z-index:285!important}
+.v89-pending-card{border:1px solid #e2e8f0;border-radius:15px;padding:13px;background:#fff}
+.v89-pending-card:hover{border-color:#c4b5fd;background:#faf7ff}
+.v89-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.v89-icon{width:30px;height:30px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;display:inline-flex;align-items:center;justify-content:center}
+</style>
+
+<script id="icc-v89-controller">
+(function(){
+'use strict';
+const E89=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const me89=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
+const mid89=()=>String(me89()?.id||'');
+
+async function push89(kind,payload){
+  try{
+    if(typeof cloudClient==='undefined'||!cloudClient)return;
+    await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind,payload}});
+  }catch(e){console.warn('V89 push',kind,e)}
+}
+window.iccBusinessPush89=push89;
+
+/* ---------- helpers assignment diff ---------- */
+function programMemberSet89(p){
+  const s=new Set((p?.memberIds||[]).map(String));
+  for(const a of Object.values(p?.assignments||{}))for(const id of (a?.memberIds||[]))s.add(String(id));
+  return s;
+}
+function snapshotProgram89(p){
+  if(!p)return null;
+  return {
+    id:String(p.id),
+    status:p.status||'',
+    start:p.start||'',
+    end:p.end||'',
+    startTime:p.startTime||'',
+    endTime:p.endTime||'',
+    location:p.location||'',
+    poles:JSON.stringify(p.poles||[]),
+    memberIds:[...programMemberSet89(p)].sort(),
+    title:p.title||''
+  };
+}
+function operationalChange89(a,b){
+  if(!a||!b)return true;
+  return ['status','start','end','startTime','endTime','location','poles','title'].some(k=>String(a[k])!==String(b[k]))
+      || JSON.stringify(a.memberIds)!==JSON.stringify(b.memberIds);
+}
+
+/* ---------- PROGRAMME : push ciblés sur vrai changement ---------- */
+const saveProgramBefore89=window.saveProgram;
+window.saveProgram=async function(e){
+  const id=document.getElementById('prog-id')?.value||'';
+  const beforeP=id?(programs||[]).find(p=>String(p.id)===String(id)):null;
+  const before=snapshotProgram89(beforeP);
+  const beforeIds=new Set(before?.memberIds||[]);
+
+  const r=await saveProgramBefore89?.apply(this,arguments);
+
+  setTimeout(async()=>{
+    let p=id?(programs||[]).find(x=>String(x.id)===String(id)):null;
+    if(!p && !id)p=[...(programs||[])].reverse().find(Boolean);
+    if(!p)return;
+    const after=snapshotProgram89(p),afterIds=new Set(after.memberIds||[]);
+
+    if(!before){
+      await push89('program.created',{program:p});
+      return;
+    }
+
+    for(const m of afterIds)if(!beforeIds.has(m))await push89('program.assignment.added',{program:p,memberId:m});
+    for(const m of beforeIds)if(!afterIds.has(m))await push89('program.assignment.removed',{program:p,memberId:m});
+
+    if(before.status!=='cancelled'&&p.status==='cancelled'){
+      await push89('program.cancelled',{program:p});
+    }else if(before.status!=='postponed'&&p.status==='postponed'){
+      await push89('program.postponed',{program:p});
+    }else if(operationalChange89(before,after)){
+      await push89('program.updated',{program:p});
+    }
+  },180);
+  return r;
+};
+try{saveProgram=window.saveProgram}catch(e){}
+
+/* ---------- REPONSE PROGRAMME : direction/référents ---------- */
+const progRespBefore89=window.v80SaveProgramResponse;
+if(typeof progRespBefore89==='function'){
+  window.v80SaveProgramResponse=async function(pid,pole,mid,status){
+    const p=(programs||[]).find(x=>String(x.id)===String(pid));
+    const r=await progRespBefore89.apply(this,arguments);
+    setTimeout(()=>push89('program.response',{program:p,responderMemberId:mid,status}),80);
+    return r;
+  };
+}
+
+/* ---------- SOLLICITATION ACCEPTÉE : si elle modifie un programme ---------- */
+const solCommitBefore89=window.v83CommitSolAnswer;
+if(typeof solCommitBefore89==='function'){
+  window.v83CommitSolAnswer=async function(id,status){
+    const s=(solicitations||[]).find(x=>String(x.id)===String(id));
+    const p=s?.programId?(programs||[]).find(x=>String(x.id)===String(s.programId)):null;
+    const before=p?programMemberSet89(p):new Set();
+    const r=await solCommitBefore89.apply(this,arguments);
+    setTimeout(async()=>{
+      if(!p)return;
+      const after=programMemberSet89(p);
+      if(['accepted','partial'].includes(status)){
+        for(const m of after)if(!before.has(m))await push89('program.assignment.added',{program:p,memberId:m,source:'solicitation'});
+        for(const m of before)if(!after.has(m))await push89('program.assignment.removed',{program:p,memberId:m,source:'solicitation'});
+      }
+    },100);
+    return r;
+  };
+}
+
+/* ---------- INDISPONIBILITE : conflit programme ---------- */
+function conflicts89(req){
+  const rs=Date.parse(req?.start||0),re=Date.parse(req?.end||req?.start||0),id=String(req?.memberId||'');
+  if(!rs||!re||!id)return [];
+  return (programs||[]).filter(p=>{
+    if(p.archived||p.deleted||p.status==='cancelled')return false;
+    const ps=Date.parse(p.start||p.date||0),pe=Date.parse(p.end||p.start||p.date||0);
+    return programMemberSet89(p).has(id)&&ps<=re&&pe>=rs;
+  });
+}
+const availDecisionBefore89=window.v81SaveAvailabilityDecision;
+if(typeof availDecisionBefore89==='function'){
+  window.v81SaveAvailabilityDecision=async function(id,status){
+    const D=(()=>{try{return JSON.parse(localStorage.getItem('icc2_v30')||'{}')}catch(e){return {}}})();
+    const req=(D.availabilityRequests||[]).find(x=>String(x.id)===String(id));
+    const r=await availDecisionBefore89.apply(this,arguments);
+    if(req&&['approved','partial'].includes(status)){
+      setTimeout(()=>conflicts89(req).forEach(p=>push89('program.conflict',{program:p,request:req})),100);
+    }
+    return r;
+  };
+}
+
+/* ---------- MEMBRE : rôle/pôle/formation ---------- */
+const saveMemberBefore89=window.saveMember;
+window.saveMember=async function(e){
+  const id=document.getElementById('mem-id')?.value||'';
+  const before=id?(members||[]).find(x=>String(x.id)===String(id)):null;
+  const old=before?{role:before.role,poles:JSON.stringify(before.poles||[]),status:before.status}:null;
+  const r=await saveMemberBefore89?.apply(this,arguments);
+  setTimeout(async()=>{
+    const m=id?(members||[]).find(x=>String(x.id)===String(id)):[...(members||[])].reverse().find(Boolean);
+    if(!m||!old)return;
+    if(String(old.role)!==String(m.role))await push89('member.role.changed',{memberId:m.id,label:`Votre rôle est maintenant : ${m.role||'équipier'}.`});
+    if(old.poles!==JSON.stringify(m.poles||[]))await push89('member.pole.changed',{memberId:m.id,label:`Vos pôles ont été mis à jour : ${(m.poles||[]).join(', ')||'aucun'}.`});
+    if(old.status!=='training'&&m.status==='training')await push89('training.assigned',{memberId:m.id,label:"Vous êtes désormais indiqué(e) comme membre en formation."});
+  },120);
+  return r;
+};
+try{saveMember=window.saveMember}catch(e){}
+
+/* ---------- EN ATTENTE TABLEAU DE BORD : archive + corbeille ---------- */
+function pendingForDashboard89(){
+  if(typeof pending84==='function')return pending84().filter(x=>!x.raw.archived&&!x.raw.deleted);
+  return [];
+}
+function scopeBadge89(x){
+  try{return typeof scopeBadge88==='function'?scopeBadge88(x):''}catch(e){return ''}
+}
+function canManage89(x){
+  try{return typeof canDeleteOwn88==='function'?canDeleteOwn88(x):false}catch(e){return false}
+}
+window.v89OpenPending=function(){
+  let m=document.getElementById('v89-pending-modal');
+  if(!m){
+    m=document.createElement('div');
+    m.id='v89-pending-modal';
+    m.className='modal hidden fixed inset-0 flex items-center justify-center p-4';
+    document.body.appendChild(m);
+  }
+  const arr=pendingForDashboard89();
+  m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto">
+    <div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10">
+      <div><h3 class="font-black">Sollicitations et programmes en attente</h3><p class="text-xs">Tout ce qui attend une action de ta part ou concerne ton activité.</p></div>
+      <button onclick="closeModal('v89-pending-modal')">✕</button>
+    </div>
+    <div class="p-4 space-y-2">
+      ${arr.map(x=>`<article class="v89-pending-card">
+        <button class="w-full text-left" onclick="closeModal('v89-pending-modal');v88OpenItem('${x.k}','${E89(x.id)}')">
+          ${scopeBadge89(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
+          <b class="block mt-1">${E89(x.title)}</b>
+          <p class="text-xs text-slate-500">${E89(String(x.date||'').replace('T',' '))}${x.location?' · '+E89(x.location):''}</p>
+        </button>
+        ${canManage89(x)?`<div class="v89-actions"><button class="v89-icon" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E89(x.id)}');setTimeout(v89OpenPending,120)">📦</button><button class="v89-icon" title="Corbeille" onclick="v88TrashItem('${x.k}','${E89(x.id)}');setTimeout(v89OpenPending,120)">🗑️</button></div>`:''}
+      </article>`).join('')||'<p class="text-xs text-slate-400">Aucun élément en attente.</p>'}
+    </div>
+  </div>`;
+  openModal('v89-pending-modal');
+};
+
+/* Dashboard : remplace l'ouverture de la carte "en attente" */
+function patchDashboard89(){
+  const d=document.getElementById('v84-dashboard');if(!d)return;
+  const card=[...d.querySelectorAll('button')].find(b=>/sollicitations et programmes en attente/i.test(b.textContent||''));
+  if(card)card.onclick=ev=>{ev.preventDefault();v89OpenPending()};
+}
+const dashObserver89=new MutationObserver(()=>patchDashboard89());
+addEventListener('load',()=>setTimeout(()=>{
+  patchDashboard89();
+  const d=document.getElementById('v84-dashboard');if(d)dashObserver89.observe(d,{childList:true,subtree:true});
+},1900));
+
+/* On remplace aussi l'appel direct si une ancienne couche réutilise v84OpenInbox. */
+window.v84OpenInbox=window.v89OpenPending;
+
+/* ---------- Évaluation : si un futur formulaire expose evaluateeMemberId ---------- */
+document.addEventListener('icc:evaluation-assigned',ev=>{
+  const d=ev.detail||{};if(d.memberId)push89('evaluation.assigned',d);
+});
+
+console.info('ICC V89 push métier chargé');
+})();
+</script>
+
 </body>
 </html>
 
