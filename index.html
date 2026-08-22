@@ -9235,8 +9235,8 @@ window.v83OpenItem=function(kind,id){
 };
 
 function refresh83(){
-  stabilizeHome83();dashboard83();try{renderMembers?.()}catch(e){}
-  if(!document.getElementById('notification-panel')?.classList.contains('hidden'))renderNotifPanel83();
+  stabilizeHome83();try{renderMembers?.()}catch(e){}
+  
   const b=document.getElementById('notif-badge');if(b){const n=pendingItems83().length;b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
 }
 window.refresh83=refresh83;
@@ -9255,1775 +9255,366 @@ console.info('ICC V83 chargé',V83);
 </script>
 
 
-<style id="icc-v84-final-css">
-#v84-dashboard{margin-top:24px}
-.v84-dash-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.v84-dash-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:14px}
-@media(min-width:640px){.v84-dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(min-width:1024px){.v84-dash-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.v84-dash-card{border:1px solid #e2e8f0;border-radius:18px;padding:16px;text-align:left;background:#fff}
-.v84-dash-card b{display:block;font-size:24px;color:#4c1d95;margin-top:4px}
-.v84-btn{background:#4c1d95;color:#fff;border-radius:11px;padding:9px 13px;font-size:11px;font-weight:900}
-.v84-item{border:1px solid #e2e8f0;border-radius:15px;padding:13px;background:#fff}
-.v84-unread{border-left:4px solid #7c3aed;background:#faf7ff}
-.v84-read{opacity:.78}
-.v84-tag{display:inline-flex;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:900;background:#f1f5f9;color:#475569}
-.v84-note{margin-top:7px;border-radius:8px;padding:6px 8px;font-size:10px;background:#fff7ed;color:#9a3412}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="icc-v91-css">
+#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard{display:none!important}
+#v91-dashboard{display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;transition:none!important;animation:none!important}
+.v91-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.v91-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:14px}
+@media(min-width:640px){.v91-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}@media(min-width:1024px){.v91-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+.v91-card{border:1px solid #e2e8f0;border-radius:18px;padding:16px;text-align:left;background:#fff}
+.v91-card b{display:block;font-size:24px;color:#4c1d95;margin-top:4px}
+.v91-btn{background:#4c1d95;color:#fff;border-radius:11px;padding:9px 13px;font-size:11px;font-weight:900}
+.v91-item{border:1px solid #e2e8f0;border-radius:15px;padding:13px;background:#fff}
+.v91-item-click{cursor:pointer}.v91-item-click:hover{background:#faf7ff;border-color:#c4b5fd}
+.v91-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.v91-icon{width:31px;height:31px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;display:inline-flex;align-items:center;justify-content:center}
+.v91-scope{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;margin-right:5px}
+.v91-personal{background:#ede9fe;color:#6d28d9}.v91-pole{background:#dbeafe;color:#1d4ed8}.v91-com{background:#dcfce7;color:#15803d}
+.v91-target-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.v91-target-tab{border:1px solid #d8dee9;border-radius:11px;padding:9px;font-size:11px;font-weight:900;background:#fff}
+.v91-target-tab.active{background:#4c1d95;color:#fff;border-color:#4c1d95}
+.v91-target-list{max-height:220px;overflow:auto;border:1px solid #e2e8f0;border-radius:12px;padding:8px;margin-top:8px}
+.v91-chip{display:inline-flex;gap:5px;align-items:center;background:#f3e8ff;color:#581c87;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800}
+.v91-section-title{font-size:12px;font-weight:900;color:#4c1d95;margin-bottom:8px}
 </style>
-<script id="icc-v84-final-controller">
+
+<script id="icc-v91-consolidated-controller">
 (function(){
 'use strict';
-const V84='2026-08-22-v84';
-const E84=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const me84=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
-const mid84=()=>String(me84()?.id||'');
-const n84=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
-const poles84=()=>new Set([...(me84()?.poles||[]),...(me84()?.refPoles||[])].map(String));
-function progConcern84(p){
- if(!p||p.archived||p.deleted||!mid84())return false;
- if(p.allCommunication===true||p.audience==='com'||p.scope==='com'||p.targetType==='com')return true;
- if((p.memberIds||[]).map(String).includes(mid84()))return true;
- if(Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(mid84())))return true;
- const ps=poles84();return (p.poles||[]).some(x=>ps.has(String(x)));
+const V91='2026-08-22-v91';
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const N=v=>String(v||'').trim().toLowerCase();
+function me(){
+ const id=localStorage.getItem('icc2_member_id')||'';
+ return (members||[]).find(m=>String(m.id)===String(id))||null;
 }
-function solConcern84(s){
- if(!s||s.archived||s.deleted||!me84())return false;
- if(String(s.fromMemberId||'')===mid84())return true;
- if((s.memberIds||[]).map(String).includes(mid84())||(s.targetMemberIds||[]).map(String).includes(mid84()))return true;
- let ts=Array.isArray(s.targets)?s.targets:[];if(!ts.length&&s.targetType)ts=[{type:s.targetType,value:s.target}];
- const ps=poles84();return ts.some(t=>t?.type==='com'||(t?.type==='person'&&String(t.value)===mid84())||(t?.type==='pole'&&ps.has(String(t.value))))||s.targetType==='com'||String(s.target||'').toLowerCase()==='toute la communication';
+const myId=()=>String(me()?.id||'');
+const memberName=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
+const alpha=(a,b)=>String(a).localeCompare(String(b),'fr',{sensitivity:'base'});
+function admin(){try{return typeof iccTechAdminRoot==='function'&&iccTechAdminRoot()}catch(e){return false}}
+function direction(){
+ const id=myId();return admin()||String(appSettings?.responsableId||'')===id||String(appSettings?.adjointId||'')===id;
 }
-function pResp84(p){let id=mid84(),r=p?.memberResponses80?.[id];if(r)return r;for(const a of Object.values(p?.assignments||{})){if(a?.responses?.[id])return {status:a.responses[id]}}return null}
-function sResp84(s){return s?.responses?.[mid84()]||null}
-function status84(x){const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);return r?.status||x.raw?.status||'pending'}
-function finalStatus84(v){return ['accepted','confirmed','approved','partial','refused','declined','cancelled'].includes(String(v||'').toLowerCase())}
-function items84(){
- const a=[];(programs||[]).filter(progConcern84).forEach(p=>a.push({k:'p',id:String(p.id),title:p.title||'Programme',date:p.start||p.date||'',end:p.end||'',location:p.location||'',raw:p}));
- (solicitations||[]).filter(solConcern84).forEach(s=>a.push({k:'s',id:String(s.id),title:s.event||s.title||'Sollicitation ponctuelle',date:s.date||s.start||'',end:s.end||'',location:s.location||'',raw:s}));
- return a.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
-}
-function readKey84(){return 'icc_v84_seen_'+mid84()}
-function seen84(){try{return new Set(JSON.parse(localStorage.getItem(readKey84())||'[]').map(String))}catch(e){return new Set()}}
-function itemKey84(x){return x.k+':'+x.id}
-function markSeen84(x){const s=seen84();s.add(itemKey84(x));localStorage.setItem(readKey84(),JSON.stringify([...s]));updateBell84();dashboard84()}
-function unread84(){const s=seen84();return items84().filter(x=>!s.has(itemKey84(x)))}
-function pending84(){return items84().filter(x=>!finalStatus84(status84(x)))}
+function myPoles(){return new Set([...(me()?.poles||[]),...(me()?.refPoles||[])].map(String))}
 
-/* FIX SYNCHRO : une synchro en cours est attendue, jamais transformée en faux échec. */
-let syncPromise84=null,syncTimer84=null;
-async function doSync84(reason='mutation',quiet=false){
- if(syncPromise84)return await syncPromise84;
- syncPromise84=(async()=>{
-  try{
-   if(!cloudClient)throw new Error('Supabase non initialisé');
-   const ses=(await cloudClient.auth.getSession()).data.session;if(!ses)throw new Error('Session Supabase inactive');
-   let state;
-   if(typeof payload83==='function')state=payload83();else{
-    let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
-    state={settings:appSettings,poles,members,programs,solicitations,pilotage:D,updatedAt:new Date().toISOString()};
-   }
+/* ---------- strict cloud save ---------- */
+async function syncCloud(reason='v91'){
+ try{
+   if(typeof cloudClient==='undefined'||!cloudClient)throw new Error('Supabase non initialisé');
+   const session=(await cloudClient.auth.getSession()).data.session;if(!session)throw new Error('Session Supabase inactive');
+   let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
+   const state={settings:appSettings,poles,members,programs,solicitations,pilotage:D,updatedAt:new Date().toISOString()};
    const {data,error}=await cloudClient.functions.invoke('send-push',{body:{action:'state-sync',state}});
-   if(error)throw new Error(error.message||String(error));
-   if(data?.success===false)throw new Error(data.error||'Supabase a refusé la sauvegarde');
-   /* Certaines versions Edge renvoient un objet 2xx valide sans success explicite : 2xx + state/revision = confirmé. */
-   if(!data || (data.success!==true && data.state===undefined && data.revision===undefined))throw new Error('Réponse Supabase non reconnue');
+   if(error)throw error;if(data?.success===false)throw new Error(data.error||'Sauvegarde refusée');
+   if(!data || (data.success!==true&&data.state===undefined&&data.revision===undefined))throw new Error('Réponse Supabase non confirmée');
    if(data.state&&typeof writeCanonicalMaster==='function')writeCanonicalMaster(data.state);
-   try{localStorage.setItem('icc2_cloud_dirty_v72','0');localStorage.setItem('icc2_cloud_last_sync_v72',new Date().toISOString())}catch(e){}
    try{setCloudInfo('Synchronisé avec Supabase.',true)}catch(e){}
    return true;
-  }catch(e){
-   console.error('V84 sync',e);
-   try{setCloudInfo('Synchronisation Supabase impossible — modification non confirmée.',false)}catch(_){}
-   if(!quiet)alert('Supabase n’a pas confirmé la modification : '+(e?.message||e));
-   return false;
-  }finally{syncPromise84=null}
- })();
- return await syncPromise84;
+ }catch(e){console.error('V91 sync',e);alert('Supabase n’a pas confirmé la modification : '+(e?.message||e));return false}
 }
-window.iccStrictSync83=doSync84;window.cloudPush=doSync84;
-window.scheduleCloudPush=function(){clearTimeout(syncTimer84);syncTimer84=setTimeout(()=>doSync84('auto',true),450)};
-window.scheduleSyncMaster=window.scheduleCloudPush;
-try{cloudPush=window.cloudPush;scheduleCloudPush=window.scheduleCloudPush;scheduleSyncMaster=window.scheduleSyncMaster}catch(e){}
+window.v91Sync=syncCloud;
 
-/* UNE SEULE TABLEAU DE BORD */
-function dashboard84(){
- const home=document.getElementById('page-home');if(!home)return;
- document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.style.display='none');
- let b=document.getElementById('v84-dashboard');if(!b){b=document.createElement('section');b.id='v84-dashboard';b.className='bg-white border rounded-3xl p-5';home.appendChild(b)}
- const pend=pending84(),train=(typeof trainingMine83==='function'?trainingMine83():[]),active=(typeof activeNow83==='function'?activeNow83():(members||[]).filter(m=>m.status==='active'&&!m.archived&&!m.deleted));
- b.innerHTML=`<div class="v84-dash-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v84-btn" onclick="v84OpenPlanning()">📅 Mon planning</button></div><div class="v84-dash-grid"><button class="v84-dash-card" onclick="v84OpenInbox()"><span>🔔</span><b>${pend.length}</b><small>Sollicitations et programmes en attente</small></button><button class="v84-dash-card" onclick="v84OpenServices()"><span>✅</span><b>${items84().filter(x=>finalStatus84(status84(x))).length}</b><small>Mes services</small></button><button class="v84-dash-card" onclick="showPage('formations')"><span>🎓</span><b>${train.length}</b><small>Membres en formation</small></button><button class="v84-dash-card" onclick="v83ShowActive?.()"><span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small></button></div>`;
+/* ---------- unique relevant item source ---------- */
+function programConcern(p){
+ if(!p||p.archived||p.deleted||!myId())return false;
+ if(p.allCommunication===true||p.audience==='com'||p.scope==='com'||p.targetType==='com')return true;
+ if((p.memberIds||[]).map(String).includes(myId()))return true;
+ if(Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(myId())))return true;
+ const ps=myPoles();return (p.poles||[]).some(x=>ps.has(String(x)));
 }
-
-/* CLOCHE : non lus en haut, déjà vus en bas */
-function updateBell84(){
- const n=unread84().length,b=document.getElementById('notif-badge');if(b){b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
+function solTargets(s){
+ let t=Array.isArray(s?.targets)?s.targets:[];
+ if(!t.length&&s?.targetType)t=[{type:s.targetType,value:s.target}];
+ return t;
 }
-window.renderNotifications=function(){
- const list=document.getElementById('notification-list');if(!list)return;
- const seen=seen84(),all=items84(),un=all.filter(x=>!seen.has(itemKey84(x))),rd=all.filter(x=>seen.has(itemKey84(x)));
- const card=x=>{const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);return `<button class="v84-item ${seen.has(itemKey84(x))?'v84-read':'v84-unread'} w-full text-left mb-2" onclick="v84OpenItem('${x.k}','${E84(x.id)}')"><span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E84(x.title)}</b><p class="text-[10px] text-slate-500">${E84(String(x.date).replace('T',' '))}${x.location?' · '+E84(x.location):''}</p>${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E84(r.reserve)}</div>`:''}${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E84(r.reason)}</div>`:''}</button>`};
- list.innerHTML=`<h4 class="text-xs font-black text-iccViolet mb-2">Nouveaux (${un.length})</h4>${un.map(card).join('')||'<p class="text-xs text-slate-400 mb-3">Aucun nouvel élément.</p>'}<h4 class="text-xs font-black text-slate-500 mt-4 mb-2">Programmes et sollicitations vus</h4>${rd.map(card).join('')||'<p class="text-xs text-slate-400">Aucun élément vu.</p>'}`;
- updateBell84();
-};
-window.v84OpenInbox=function(){const p=document.getElementById('notification-panel');if(p)p.classList.remove('hidden');renderNotifications()};
-
-/* DÉTAILS CLIQUABLES */
-function openDetail84(x){
- let m=document.getElementById('v84-detail');if(!m){m=document.createElement('div');m.id='v84-detail';m.className='modal hidden fixed inset-0 z-[220] flex items-center justify-center p-4';document.body.appendChild(m)}
- const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw),raw=x.raw;
- let details=x.k==='p'
- ?`<p><b>Horaire :</b> ${E84(raw.startTime||'—')} → ${E84(raw.endTime||'—')}</p><p><b>Lieu :</b> ${E84(raw.location||'—')}</p><p><b>Pôles :</b> ${E84((raw.poles||[]).join(', ')||'Toute la Com / affectation directe')}</p><p><b>Description :</b> ${E84(raw.desc||raw.generalNote||'—')}</p>`
- :`<p><b>De :</b> ${E84(raw.from||'—')}</p><p><b>À :</b> ${E84(raw.target||'—')}</p><p><b>Message :</b> ${E84(raw.message||'—')}</p><p><b>Programme lié :</b> ${E84((programs||[]).find(p=>String(p.id)===String(raw.programId))?.title||'—')}</p>`;
- m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><div><span class="text-xs">${x.k==='p'?'Programme':'Sollicitation ponctuelle'}</span><h3 class="font-black">${E84(x.title)}</h3></div><button onclick="closeModal('v84-detail')">✕</button></div><div class="p-5 text-sm space-y-2"><p><b>Date :</b> ${E84(String(x.date).replace('T',' '))}</p>${details}${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E84(r.reserve)}</div>`:''}${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E84(r.reason)}</div>`:''}<div class="mt-4"><button class="v84-btn" onclick="closeModal('v84-detail');showPage('${x.k==='p'?'programmes':'sollicitations'}')">Ouvrir dans ${x.k==='p'?'Programmes':'Sollicitations ponctuelles'}</button></div></div></div>`;
- openModal('v84-detail');
+function solicitationConcern(s){
+ if(!s||s.archived||s.deleted||!me())return false;
+ if(String(s.fromMemberId||s.createdByMemberId||'')===myId())return true;
+ if((s.targetMemberIds||[]).map(String).includes(myId()))return true;
+ const ps=myPoles();
+ return solTargets(s).some(t=>t?.type==='com'||(t?.type==='person'&&String(t.value)===myId())||(t?.type==='pole'&&ps.has(String(t.value))))
+   ||s.targetType==='com'||N(s.target)==='toute la communication';
 }
-window.v84OpenItem=function(k,id){const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x)return;markSeen84(x);renderNotifications();openDetail84(x)};
-
-/* MES SERVICES : effectué / accepté / refusé, avec archive personnelle */
-function servicesArchive84(){try{return new Set(JSON.parse(localStorage.getItem('icc_v84_services_archive_'+mid84())||'[]'))}catch(e){return new Set()}}
-function saveServicesArchive84(s){localStorage.setItem('icc_v84_services_archive_'+mid84(),JSON.stringify([...s]))}
-window.v84OpenServices=function(){
- let m=document.getElementById('v84-services');if(!m){m=document.createElement('div');m.id='v84-services';m.className='modal hidden fixed inset-0 z-[221] flex items-center justify-center p-4';document.body.appendChild(m)}
- const ar=servicesArchive84(),done=items84().filter(x=>finalStatus84(status84(x))&&!ar.has(itemKey84(x))),arch=items84().filter(x=>ar.has(itemKey84(x)));
- const card=(x,a=false)=>`<div class="v84-item"><div class="flex justify-between gap-2"><div><span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION'}</span><b class="block">${E84(x.title)}</b><p class="text-xs text-slate-500">${E84(x.date)} · ${E84(status84(x))}</p></div><div class="flex gap-1"><button class="v84-btn" onclick="v84OpenItem('${x.k}','${E84(x.id)}')">Voir</button>${a?`<button class="v81-good" onclick="v84RestoreService('${itemKey84(x)}')">Restaurer</button>`:`<button class="v81-warn" onclick="v84ArchiveService('${itemKey84(x)}')">Archiver</button>`}</div></div></div>`;
- m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Mes services</h3><p class="text-xs">Tout ce que tu as accepté, effectué, accepté partiellement ou refusé.</p></div><button onclick="closeModal('v84-services')">✕</button></div><div class="p-4"><h4 class="font-black mb-2">Historique personnel</h4><div class="space-y-2">${done.map(x=>card(x)).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}</div><h4 class="font-black mt-6 mb-2">Archives personnelles</h4><div class="space-y-2">${arch.map(x=>card(x,true)).join('')||'<p class="text-xs text-slate-400">Aucune archive.</p>'}</div></div></div>`;
- openModal('v84-services');
-};
-window.v84ArchiveService=function(key){const s=servicesArchive84();s.add(key);saveServicesArchive84(s);v84OpenServices()};
-window.v84RestoreService=function(key){const s=servicesArchive84();s.delete(key);saveServicesArchive84(s);v84OpenServices()};
-
-/* MON PLANNING : réutilise le planning V83 */
-window.v84OpenPlanning=function(){if(typeof v83OpenPlanning==='function')v83OpenPlanning();else if(typeof openMyPlanning82==='function')openMyPlanning82()};
-
-/* TOUTE LA COM dans l'affectation Programme */
-function ensureAllCom84(){
- const modal=document.getElementById('program-modal');if(!modal||document.getElementById('v84-allcom'))return;
- const anchor=document.getElementById('prog-poles')?.closest('div');
- if(!anchor)return;
- const box=document.createElement('label');box.id='v84-allcom';box.className='flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mt-3 text-xs font-black text-iccViolet';
- box.innerHTML='<input id="prog-all-com" type="checkbox"> Toute la Communication — affecter tous les membres actifs';
- anchor.insertAdjacentElement('beforebegin',box);
- const id=document.getElementById('prog-id')?.value,p=(programs||[]).find(x=>String(x.id)===String(id));document.getElementById('prog-all-com').checked=!!p?.allCommunication;
+function programResponse(p){
+ const id=myId(),r=p?.memberResponses80?.[id];if(r)return r;
+ for(const a of Object.values(p?.assignments||{}))if(a?.responses?.[id])return {status:a.responses[id]};
+ return null;
 }
-const oldOpenP84=window.openProgram;window.openProgram=function(){const r=oldOpenP84?.apply(this,arguments);setTimeout(ensureAllCom84,0);return r};
-const oldCollect84=window.collectAssignments;window.collectAssignments=function(){
- const result=oldCollect84?.apply(this,arguments)||{};
- if(document.getElementById('prog-all-com')?.checked){
-   const ids=(members||[]).filter(m=>!m.archived&&!m.deleted&&!m.deletedAt&&m.status!=='inactive').map(m=>m.id);
-   result['Toute la Communication']={memberIds:ids,onCall:[],tasks:'Affectation à toute la Communication',responses:{}};
+function solicitationResponse(s){return s?.responses?.[myId()]||null}
+function itemStatus(x){return (x.k==='p'?programResponse(x.raw):solicitationResponse(x.raw))?.status||x.raw?.status||'pending'}
+function relevant(){
+ const out=[];
+ (programs||[]).filter(programConcern).forEach(p=>out.push({k:'p',id:String(p.id),title:p.title||'Programme',date:p.start||p.date||'',end:p.end||'',location:p.location||'',raw:p}));
+ (solicitations||[]).filter(solicitationConcern).forEach(s=>out.push({k:'s',id:String(s.id),title:s.event||s.title||'Sollicitation ponctuelle',date:s.date||s.start||'',end:s.end||'',location:s.location||'',raw:s}));
+ return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
+function isFinal(x){return ['accepted','confirmed','approved','partial','refused','declined','cancelled','completed'].includes(N(itemStatus(x)))}
+function pending(){return relevant().filter(x=>!isFinal(x))}
+function completed(){return relevant().filter(isFinal)}
+function scope(x){
+ if(x.k==='p'){
+  const p=x.raw;if(p.allCommunication===true||p.audience==='com'||p.scope==='com'||p.targetType==='com')return 'com';
+  if((p.memberIds||[]).map(String).includes(myId())||Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(myId())))return 'personal';
+  return 'pole';
  }
- return result;
-};
-/* Après sauvegarde programme, mémoriser le flag et notifier */
-const oldSaveP84=window.saveProgram;window.saveProgram=async function(e){
- const idBefore=document.getElementById('prog-id')?.value||'',all=!!document.getElementById('prog-all-com')?.checked;
- const beforeIds=new Set((programs||[]).map(p=>String(p.id)));
- const r=await oldSaveP84?.apply(this,arguments);
- setTimeout(async()=>{
-   let p=idBefore?(programs||[]).find(x=>String(x.id)===String(idBefore)): [...(programs||[])].reverse().find(x=>!beforeIds.has(String(x.id)));
-   if(p){p.allCommunication=all;p.updatedAt=new Date().toISOString();try{persist?.()}catch(e){}await doSync84('program',true);try{await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind:beforeIds.has(String(p.id))?'program.updated':'program.created',payload:{program:p}}})}catch(e){}}
-   refresh84();
- },100);
- return r;
-};
-try{saveProgram=window.saveProgram}catch(e){}
-
-/* BOUTON ENVOYER SOLLICITATION : clic DIRECT, aucun submit ancien */
-function wireSolicitation84(){
- const form=document.querySelector('#solicitation-modal form');if(!form)return;
- const btn=[...form.querySelectorAll('button')].find(b=>/envoyer/i.test(b.textContent||''));if(!btn)return;
- btn.type='button';btn.disabled=false;
- btn.onclick=async ev=>{ev.preventDefault();ev.stopImmediatePropagation();if(typeof v83SaveSolicitation==='function')await v83SaveSolicitation({preventDefault(){},stopImmediatePropagation(){}});else alert('Fonction de sollicitation indisponible.');};
- form.onsubmit=e=>{e.preventDefault();btn.click()};
-}
-const oldOpenS84=window.openSolicitation;window.openSolicitation=function(){const r=oldOpenS84?.apply(this,arguments);setTimeout(wireSolicitation84,30);return r};
-
-/* refresh */
-function refresh84(){dashboard84();updateBell84();const panel=document.getElementById('notification-panel');if(panel&&!panel.classList.contains('hidden'))renderNotifications()}
-window.refresh84=refresh84;
-addEventListener('load',()=>setTimeout(()=>{document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.style.display='none');dashboard84();updateBell84();wireSolicitation84()},1800));
-const oldShow84=window.showPage;window.showPage=function(id){const r=oldShow84?.apply(this,arguments);setTimeout(()=>{if(id==='home')dashboard84();if(id==='sollicitations')wireSolicitation84();refresh84()},70);return r};try{showPage=window.showPage}catch(e){}
-setInterval(()=>{updateBell84();dashboard84()},7000);
-console.info('ICC V84 chargé',V84);
-})();
-</script>
-
-
-<style id="icc-v85-targeted-fixes-css">
-#v84-services .v85-service-card{cursor:pointer;transition:none!important}
-#v84-services .v85-service-card:hover{background:#faf7ff;border-color:#c4b5fd}
-#v84-detail{z-index:240!important}
-</style>
-<script id="icc-v85-targeted-fixes">
-(function(){
-'use strict';
-
-/* =========================================================
-   1. SOLLICITATIONS : UNE SEULE "NATURE DE LA DEMANDE"
-   ========================================================= */
-function removeDuplicateNature85(){
-  const duplicate=document.getElementById('v83-sol-kind');
-  if(duplicate){
-    const wrap=duplicate.closest('.grid');
-    if(wrap)wrap.remove();
-    else duplicate.closest('label')?.remove();
-  }
-  document.getElementById('v83-replace-wrap')?.remove();
-}
-
-/* Le formulaire V9 utilise des cases multiples. On lit CE QUI EST
-   réellement coché au lieu de chercher l'ancien #sol-target. */
-function selectedTargets85(){
-  const type=document.getElementById('sol-target-type')?.value||'person';
-
-  if(type==='com'){
-    return [{type:'com',value:'all',label:'Toute la Communication'}];
-  }
-
-  const checked=[...document.querySelectorAll('#v9-sol-targets input:checked')];
-  if(checked.length){
-    return checked.map(x=>({
-      type,
-      value:String(x.value||''),
-      label:type==='person'?(typeof getMemberName==='function'?getMemberName(x.value):String(x.value)):String(x.value)
-    })).filter(x=>x.value);
-  }
-
-  /* Compatibilité uniquement si une ancienne version du formulaire
-     présente encore un select unique. */
-  const old=document.getElementById('sol-target');
-  if(old?.value){
-    return [{type,value:String(old.value),label:old.selectedOptions?.[0]?.textContent||String(old.value)}];
-  }
-
-  return [];
-}
-
-/* On conserve le module V63 existant : Renfort / Remplacement. */
-function mode85(){
-  return document.getElementById('v63-sol-mode')?.value||'renfort';
-}
-function replacement85(){
-  return document.getElementById('v63-sol-replacement')?.value||'';
-}
-
-/* Sauvegarde finale : plusieurs destinataires dans UNE sollicitation,
-   vraie confirmation Supabase, puis push aux destinataires. */
-window.v85SaveSolicitation=async function(e){
-  e?.preventDefault?.();
-  e?.stopImmediatePropagation?.();
-
-  const me=typeof me83==='function'?me83():null;
-  if(!me && !(typeof isAdmin83==='function'&&isAdmin83())){
-    return alert('Aucune fiche membre liée à ce compte.');
-  }
-
-  const targets=selectedTargets85();
-  if(!targets.length){
-    return alert('Sélectionne au moins un destinataire.');
-  }
-
-  const type=document.getElementById('sol-target-type')?.value||'person';
-  const fromValue=document.getElementById('sol-from')?.value||'';
-  const labels=targets.map(x=>x.label).join(', ');
-
-  const s={
-    id:'s'+Date.now(),
-    from:typeof mname83==='function'?mname83(me):fromValue,
-    fromMemberId:me?.id||'',
-    createdByMemberId:me?.id||'',
-    createdByName:typeof mname83==='function'?mname83(me):fromValue,
-
-    targetType:type,
-    target:type==='com'?'Toute la Communication':labels,
-    targets:targets.map(x=>({type:x.type,value:x.value})),
-    targetMemberIds:type==='person'?targets.map(x=>x.value):[],
-
-    date:document.getElementById('sol-date')?.value||'',
-    event:document.getElementById('sol-event')?.value||'',
-    message:document.getElementById('sol-message')?.value||'',
-    deadline:document.getElementById('sol-deadline')?.value||'',
-    programId:document.getElementById('sol-program')?.value||'',
-
-    /* Réutilisation de la nature EXISTANTE */
-    mode:mode85(),
-    requestKind:mode85(),
-    replacementMemberId:replacement85(),
-    replaceMemberId:replacement85(),
-
-    status:'pending',
-    responses:{},
-    decisionHistory:[],
-    createdAt:new Date().toISOString(),
-    updatedAt:new Date().toISOString()
-  };
-
-  if(s.mode==='remplacement' && !s.replacementMemberId){
-    return alert('Choisis le membre à remplacer.');
-  }
-
-  solicitations.push(s);
-  try{persist?.()}catch(_){}
-
-  const syncFn=typeof iccStrictSync83==='function'
-    ?iccStrictSync83
-    :(typeof cloudPush==='function'?cloudPush:null);
-
-  const ok=syncFn ? await syncFn('solicitation') : false;
-
-  if(!ok){
-    solicitations=solicitations.filter(x=>x!==s);
-    try{persist?.()}catch(_){}
-    return;
-  }
-
-  try{
-    if(typeof iccNotify80==='function'){
-      await iccNotify80('solicitation.created',{solicitation:s});
-    }else if(typeof cloudClient!=='undefined'&&cloudClient){
-      await cloudClient.functions.invoke('send-push',{
-        body:{action:'notify-event',kind:'solicitation.created',payload:{solicitation:s}}
-      });
-    }
-  }catch(err){
-    console.warn('Push sollicitation',err);
-  }
-
-  closeModal('solicitation-modal');
-  try{renderSolicitations?.()}catch(_){}
-  try{refresh84?.()}catch(_){}
-  alert('Sollicitation ponctuelle enregistrée et confirmée dans Supabase.');
-};
-
-/* On câble directement Envoyer sur LA fonction finale.
-   Aucun submit concurrent ne peut intercepter le clic. */
-function wireSolicitation85(){
-  removeDuplicateNature85();
-
-  const form=document.querySelector('#solicitation-modal form');
-  if(!form)return;
-
-  const send=[...form.querySelectorAll('button')].find(
-    b=>/envoyer/i.test(b.textContent||'')
-  );
-
-  if(send){
-    send.type='button';
-    send.disabled=false;
-    send.onclick=async ev=>{
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.stopImmediatePropagation();
-      await window.v85SaveSolicitation(ev);
-    };
-  }
-
-  form.onsubmit=e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    if(send)send.click();
-  };
-}
-
-/* Le dernier openSolicitation gagne, mais garde tous les anciens champs utiles. */
-const openSolBefore85=window.openSolicitation;
-window.openSolicitation=function(){
-  const r=openSolBefore85?.apply(this,arguments);
-  setTimeout(wireSolicitation85,40);
-  setTimeout(wireSolicitation85,180);
-  return r;
-};
-try{saveSolicitation=window.v85SaveSolicitation}catch(e){}
-
-
-/* =========================================================
-   2. MES SERVICES : CARTE CLIQUABLE, AUCUN BOUTON "VOIR"
-   ========================================================= */
-function serviceArchive85(){
-  try{return new Set(JSON.parse(localStorage.getItem('icc_v84_services_archive_'+mid84())||'[]'))}
-  catch(e){return new Set()}
-}
-function serviceCard85(x,archived=false){
-  const status=status84(x);
-  return `<article
-    class="v84-item v85-service-card"
-    onclick="v85OpenService('${x.k}','${E84(x.id)}')">
-    <div class="flex justify-between gap-3 items-start">
-      <div>
-        <span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-        <b class="block mt-1">${E84(x.title)}</b>
-        <p class="text-xs text-slate-500">${E84(x.date)} · ${E84(status)}</p>
-        <p class="text-[10px] text-slate-400 mt-1">Clique sur la fiche pour afficher tous les détails.</p>
-      </div>
-      <button
-        class="${archived?'v81-good':'v81-warn'} shrink-0"
-        onclick="event.stopPropagation();${archived?`v84RestoreService('${itemKey84(x)}')`:`v84ArchiveService('${itemKey84(x)}')`}">
-        ${archived?'Restaurer':'Archiver'}
-      </button>
-    </div>
-  </article>`;
-}
-
-window.v84OpenServices=function(){
-  let m=document.getElementById('v84-services');
-  if(!m){
-    m=document.createElement('div');
-    m.id='v84-services';
-    m.className='modal hidden fixed inset-0 z-[221] flex items-center justify-center p-4';
-    document.body.appendChild(m);
-  }
-
-  const ar=serviceArchive85();
-  const done=items84().filter(x=>finalStatus84(status84(x))&&!ar.has(itemKey84(x)));
-  const archived=items84().filter(x=>ar.has(itemKey84(x)));
-
-  m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto">
-    <div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10">
-      <div>
-        <h3 class="font-black">Mes services</h3>
-        <p class="text-xs">Clique directement sur un service pour afficher son détail.</p>
-      </div>
-      <button onclick="closeModal('v84-services')">✕</button>
-    </div>
-    <div class="p-4">
-      <h4 class="font-black mb-2">Historique personnel</h4>
-      <div class="space-y-2">
-        ${done.map(x=>serviceCard85(x,false)).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}
-      </div>
-
-      <h4 class="font-black mt-6 mb-2">Archives personnelles</h4>
-      <div class="space-y-2">
-        ${archived.map(x=>serviceCard85(x,true)).join('')||'<p class="text-xs text-slate-400">Aucune archive.</p>'}
-      </div>
-    </div>
-  </div>`;
-
-  openModal('v84-services');
-};
-
-/* On ferme Mes services AVANT d'ouvrir le détail.
-   Ainsi jamais deux fenêtres superposées. */
-window.v85OpenService=function(k,id){
-  const x=items84().find(y=>y.k===k&&String(y.id)===String(id));
-  if(!x)return;
-
-  closeModal('v84-services');
-
-  /* Petit délai d'une frame pour que l'ancien modal ait réellement disparu */
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      if(typeof markSeen84==='function')markSeen84(x);
-      if(typeof openDetail84==='function')openDetail84(x);
-      else if(typeof v84OpenItem==='function')v84OpenItem(k,id);
-    });
-  });
-};
-
-/* Les boutons Archiver/Restaurer réouvrent proprement la liste. */
-const archiveServiceBefore85=window.v84ArchiveService;
-window.v84ArchiveService=function(key){
-  archiveServiceBefore85?.(key);
-  setTimeout(()=>window.v84OpenServices(),20);
-};
-const restoreServiceBefore85=window.v84RestoreService;
-window.v84RestoreService=function(key){
-  restoreServiceBefore85?.(key);
-  setTimeout(()=>window.v84OpenServices(),20);
-};
-
-
-/* =========================================================
-   3. NETTOYAGE AU CHARGEMENT
-   ========================================================= */
-window.addEventListener('load',()=>setTimeout(()=>{
-  removeDuplicateNature85();
-},1500));
-
-console.info('ICC V85 ciblée chargée');
-})();
-</script>
-
-
-<style id="icc-v86-css">
-.v86-filter-actions{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-top:8px}
-.v86-apply{background:#4c1d95;color:#fff;border-radius:10px;padding:9px 14px;font-size:11px;font-weight:900}
-</style>
-<script id="icc-v86-fixes">
-(function(){
-'use strict';
-const E86=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-
-/* ---------- PROFIL : ne dépend plus uniquement de icc2_member_id ---------- */
-function currentMember86(){
-  let id=localStorage.getItem('icc2_member_id')||'';
-  let m=(members||[]).find(x=>String(x.id)===String(id));
-  if(m)return m;
-  let email='';
-  try{
-    const raw=localStorage.getItem('icc2_auth_user')||localStorage.getItem('icc_auth_user')||'';
-    if(raw){const u=JSON.parse(raw);email=u?.email||''}
-  }catch(e){}
-  if(!email){
-    try{email=document.querySelector('[data-user-email]')?.textContent?.trim()||''}catch(e){}
-  }
-  if(email)m=(members||[]).find(x=>String(x.email||'').toLowerCase()===email.toLowerCase());
-  if(!m){
-    /* dernière solution : profil déjà revendiqué/lié par les couches cloud */
-    const linked=localStorage.getItem('icc2_linked_member_id')||localStorage.getItem('icc_member_id')||'';
-    if(linked)m=(members||[]).find(x=>String(x.id)===String(linked));
-  }
-  if(m)try{localStorage.setItem('icc2_member_id',String(m.id))}catch(e){}
-  return m||null;
-}
-window.me83=currentMember86;
-
-/* ---------- SOLLICITATION : autorise le profil cloud lié, pas faux blocage local ---------- */
-const save85=window.v85SaveSolicitation;
-window.v85SaveSolicitation=async function(e){
-  const m=currentMember86();
-  if(!m){
-    /* tenter une liaison serveur avant de refuser */
-    try{
-      if(typeof linkProfileServer80==='function')await linkProfileServer80();
-      else if(typeof claimProfile80==='function')await claimProfile80();
-    }catch(_){}
-  }
-  const m2=currentMember86();
-  if(!m2){
-    return alert("Ton compte Supabase est connecté mais aucune fiche membre correspondante n'a encore été retrouvée. Ouvre une fois Paramètres > Membres, puis réessaie.");
-  }
-  return await save85?.call(this,e);
-};
-
-/* recâbler Envoyer après toutes les anciennes couches */
-function wire86(){
- const form=document.querySelector('#solicitation-modal form');if(!form)return;
- const b=[...form.querySelectorAll('button')].find(x=>/envoyer/i.test(x.textContent||''));if(!b)return;
- b.type='button';b.disabled=false;
- b.onclick=async ev=>{ev.preventDefault();ev.stopImmediatePropagation();await window.v85SaveSolicitation(ev)};
- form.onsubmit=ev=>{ev.preventDefault();b.click()};
-}
-const openS86=window.openSolicitation;
-window.openSolicitation=function(){const r=openS86?.apply(this,arguments);setTimeout(wire86,60);setTimeout(wire86,220);return r};
-
-/* ---------- MES SERVICES : clic garanti ---------- */
-function bindServices86(){
-  const home=document.getElementById('page-home');if(!home)return;
-  const cards=[...home.querySelectorAll('button')];
-  const b=cards.find(x=>/mes services/i.test(x.textContent||''));
-  if(b){
-    b.type='button';
-    b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();window.v84OpenServices?.()};
-  }
-}
-const oldServices86=window.v84OpenServices;
-window.v84OpenServices=function(){
-  if(typeof oldServices86==='function')return oldServices86.apply(this,arguments);
-};
-window.v86OpenServices=()=>window.v84OpenServices?.();
-
-/* ---------- TROMBINOSCOPE : filtres appliqués seulement au bouton ---------- */
-let filter86={q:'',status:'all',pole:'all',sort:'name'};
-function ensureFilter86(){
- const page=document.getElementById('page-trombinoscope');if(!page)return;
- const add=[...page.querySelectorAll('button')].find(b=>/\+?\s*(personne|membre)/i.test(b.textContent||''));
- if(!add||document.getElementById('v86-apply-filters'))return;
- const btn=document.createElement('button');btn.id='v86-apply-filters';btn.type='button';btn.className='v86-apply';btn.textContent='Appliquer';
- btn.onclick=()=>{
-   filter86.q=(document.getElementById('member-search')?.value||'').trim().toLowerCase();
-   filter86.status=document.getElementById('member-filter')?.value||'all';
-   filter86.pole=document.getElementById('member-pole-filter')?.value||document.getElementById('member-pole')?.value||'all';
-   filter86.sort=document.getElementById('member-sort')?.value||'name';
-   renderMembers86();
- };
- add.parentElement?.insertBefore(btn,add);
-}
-function medals86(m){
- const a=[];
- if(String(appSettings?.responsableId||'')===String(m.id))a.push('<span class="v83-medal v83-gold" title="Responsable">★</span>');
- if(String(appSettings?.adjointId||'')===String(m.id))a.push('<span class="v83-medal v83-blue" title="Adjoint">★</span>');
- if(m.role==='referent'||(m.refPoles||[]).length)a.push('<span class="v83-medal v83-bronze" title="Référent">★</span>');
- return a.length?'<span class="v83-medals">'+a.join('')+'</span>':'';
-}
-function renderMembers86(){
- const el=document.getElementById('members-grid');if(!el)return;
- let arr=(members||[]).map(typeof normalizeMember==='function'?normalizeMember:x=>x).filter(m=>!m.archived&&!m.deleted&&!m.deletedAt);
- if(filter86.q)arr=arr.filter(m=>(typeof memberDisplay==='function'?memberDisplay(m):((m.firstName||'')+' '+(m.lastName||''))).toLowerCase().includes(filter86.q));
- if(filter86.status!=='all')arr=arr.filter(m=>String(m.status)===String(filter86.status));
- if(filter86.pole!=='all')arr=arr.filter(m=>(m.poles||[]).map(String).includes(String(filter86.pole)));
- arr.sort((a,b)=>{
-   if(filter86.sort==='recent')return String(b.createdAt||b.year||'').localeCompare(String(a.createdAt||a.year||''));
-   if(filter86.sort==='pole')return String((a.poles||[])[0]||'').localeCompare(String((b.poles||[])[0]||''));
-   const an=typeof memberDisplay==='function'?memberDisplay(a):((a.firstName||'')+' '+(a.lastName||''));
-   const bn=typeof memberDisplay==='function'?memberDisplay(b):((b.firstName||'')+' '+(b.lastName||''));
-   return an.localeCompare(bn,'fr');
- });
- el.innerHTML=arr.map(m=>{
-  const name=typeof memberDisplay==='function'?memberDisplay(m):((m.firstName||'')+' '+(m.lastName||''));
-  return `<article class="bg-white rounded-2xl border shadow-sm overflow-hidden"><div class="h-24 bg-gradient-to-r from-purple-800 to-blue-700"></div><div class="px-4 pb-4 relative"><img src="${m.photo||'https://ui-avatars.com/api/?name='+encodeURIComponent(name)+'&background=4c1d95&color=fff&size=160'}" class="w-20 h-20 rounded-full object-cover border-4 border-white absolute -top-10 shadow"><div class="pt-12"><h3 class="font-black flex items-center">${E86(name)}${medals86(m)}</h3><p class="text-[10px] text-slate-500">${m.role==='referent'?'Référent':'Équipier'}</p><div class="flex flex-wrap gap-1 mt-3">${(m.poles||[]).map(x=>`<span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-[9px] font-bold">${E86(x)}</span>`).join('')}</div>${typeof canManageMember==='function'&&canManageMember()?`<button onclick="openMember('${E86(m.id)}')" class="mt-3 text-[10px] font-bold text-iccBlue">Modifier</button>`:''}</div></div></article>`;
- }).join('');
-}
-window.renderMembers=renderMembers86;
-
-const show86=window.showPage;
-window.showPage=function(id){const r=show86?.apply(this,arguments);setTimeout(()=>{if(id==='trombinoscope'){ensureFilter86();renderMembers86()}if(id==='home')bindServices86()},80);return r};
-try{showPage=window.showPage}catch(e){}
-addEventListener('load',()=>setTimeout(()=>{bindServices86();ensureFilter86();wire86()},1800));
-console.info('ICC V86 correctifs ciblés chargés');
-})();
-</script>
-
-
-<style id="icc-v87-clean-css">
-#v87-services-modal{z-index:260!important}
-#v87-service-detail{z-index:270!important}
-.v87-service{border:1px solid #e2e8f0;border-radius:15px;padding:14px;background:#fff;cursor:pointer}
-.v87-service:hover{background:#faf7ff;border-color:#c4b5fd}
-.v87-service small{color:#64748b}
-</style>
-
-<script id="icc-v87-clean-controller">
-(function(){
-'use strict';
-
-const esc87=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const norm87=v=>String(v||'').trim().toLowerCase();
-
-function memberName87(m){
-  return String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
-}
-
-async function currentMember87(){
-  let id=localStorage.getItem('icc2_member_id')||'';
-  let m=(members||[]).find(x=>String(x.id)===String(id));
-  if(m)return m;
-
-  /* La source la plus fiable est désormais Supabase profile-link. */
-  try{
-    if(typeof cloudClient!=='undefined'&&cloudClient){
-      const {data,error}=await cloudClient.functions.invoke('send-push',{body:{action:'profile-link'}});
-      if(!error&&data?.success&&data.member){
-        m=data.member;
-        const ix=(members||[]).findIndex(x=>String(x.id)===String(m.id));
-        if(ix>=0)members[ix]=Object.assign({},members[ix],m);
-        else members.push(m);
-        localStorage.setItem('icc2_member_id',String(m.id));
-        return m;
-      }
-    }
-  }catch(e){console.warn('V87 profile-link',e)}
-
-  return null;
-}
-
-function sortMembersAlpha87(){
-  return [...(members||[])]
-    .filter(m=>!m.archived&&!m.deleted&&!m.deletedAt&&m.status!=='inactive')
-    .sort((a,b)=>memberName87(a).localeCompare(memberName87(b),'fr',{sensitivity:'base'}));
-}
-function sortProgramsSoon87(){
-  return [...(programs||[])]
-    .filter(p=>!p.archived&&!p.deleted)
-    .sort((a,b)=>{
-      const da=Date.parse(a.start||a.date||'')||Number.MAX_SAFE_INTEGER;
-      const db=Date.parse(b.start||b.date||'')||Number.MAX_SAFE_INTEGER;
-      return da-db || String(a.title||'').localeCompare(String(b.title||''),'fr');
-    });
-}
-
-/* ===========================================================
-   SOLLICITATION — UNE SEULE LECTURE DU FORMULAIRE ACTUEL
-   =========================================================== */
-function removeRecentDuplicateNature87(){
-  const d=document.getElementById('v83-sol-kind');
-  if(d){
-    const grid=d.closest('.grid');
-    if(grid)grid.remove();
-    else d.closest('label')?.remove();
-  }
-  document.getElementById('v83-replace-wrap')?.remove();
-}
-
-/* Réordonne simplement les éléments existants, sans recréer un second formulaire. */
-function sortSolicitationForm87(){
-  const program=document.getElementById('sol-program');
-  if(program){
-    const selected=program.value;
-    program.innerHTML='<option value="">— Aucun —</option>'+
-      sortProgramsSoon87().map(p=>`<option value="${esc87(p.id)}">${esc87(p.title||'Programme')} · ${esc87(p.start||p.date||'')}</option>`).join('');
-    program.value=selected;
-  }
-
-  const type=document.getElementById('sol-target-type')?.value||'person';
-  const wrap=document.getElementById('sol-target-wrap');
-  if(!wrap)return;
-
-  if(type==='person'){
-    const previously=new Set([...wrap.querySelectorAll('input:checked')].map(x=>String(x.value)));
-    wrap.innerHTML='<div id="v9-sol-targets" class="space-y-2">'+
-      sortMembersAlpha87().map(m=>`<label class="text-xs border rounded-lg p-2 flex gap-2 items-center"><input type="checkbox" value="${esc87(m.id)}" ${previously.has(String(m.id))?'checked':''}>${esc87(memberName87(m))}</label>`).join('')+
-      '</div>';
-  }else if(type==='pole'){
-    const previously=new Set([...wrap.querySelectorAll('input:checked')].map(x=>String(x.value)));
-    wrap.innerHTML='<div id="v9-sol-targets" class="space-y-2">'+
-      [...(poles||[])].sort((a,b)=>String(a).localeCompare(String(b),'fr',{sensitivity:'base'}))
-        .map(p=>`<label class="text-xs border rounded-lg p-2 flex gap-2 items-center"><input type="checkbox" value="${esc87(p)}" ${previously.has(String(p))?'checked':''}>${esc87(p)}</label>`).join('')+
-      '</div>';
-  }else if(type==='com'){
-    wrap.innerHTML='<div class="field bg-slate-50">Toute la Communication</div>';
-  }
-
-  const replacement=document.getElementById('v63-sol-replacement');
-  if(replacement){
-    const selected=replacement.value;
-    replacement.innerHTML='<option value="">— Choisir le membre à remplacer —</option>'+
-      sortMembersAlpha87().map(m=>`<option value="${esc87(m.id)}">${esc87(memberName87(m))}</option>`).join('');
-    replacement.value=selected;
-  }
-}
-
-/* Lit TOUTES les variantes historiques possibles du champ destinataire. */
-function chosenTargets87(){
-  const type=document.getElementById('sol-target-type')?.value||'person';
-
-  if(type==='com'){
-    return [{type:'com',value:'all',label:'Toute la Communication'}];
-  }
-
-  const wrap=document.getElementById('sol-target-wrap');
-  if(!wrap)return [];
-
-  let values=[...wrap.querySelectorAll('input[type="checkbox"]:checked')]
-    .map(x=>String(x.value||'').trim())
-    .filter(Boolean);
-
-  if(!values.length){
-    values=[...wrap.querySelectorAll('select')]
-      .map(x=>String(x.value||'').trim())
-      .filter(Boolean);
-  }
-
-  if(!values.length){
-    const legacy=document.getElementById('sol-target');
-    if(legacy?.value)values=[String(legacy.value)];
-  }
-
-  values=[...new Set(values)];
-
-  return values.map(v=>({
-    type,
-    value:v,
-    label:type==='person'
-      ? memberName87((members||[]).find(m=>String(m.id)===v))
-      : v
-  }));
-}
-
-async function syncSolicitation87(s){
-  if(typeof cloudClient==='undefined'||!cloudClient)throw new Error('Supabase non initialisé');
-
-  let D={};
-  try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
-
-  const state={
-    settings:appSettings,
-    poles:Array.isArray(poles)?poles:[],
-    members:Array.isArray(members)?members:[],
-    programs:Array.isArray(programs)?programs:[],
-    solicitations:Array.isArray(solicitations)?solicitations:[],
-    pilotage:D,
-    updatedAt:new Date().toISOString()
-  };
-
-  const {data,error}=await cloudClient.functions.invoke('send-push',{
-    body:{action:'state-sync',state}
-  });
-
-  if(error)throw error;
-  if(data?.success===false)throw new Error(data.error||'Supabase a refusé la sauvegarde');
-  if(!data || (data.success!==true && data.state===undefined && data.revision===undefined)){
-    throw new Error('Supabase n’a pas confirmé la sauvegarde');
-  }
-
-  if(data.state&&typeof writeCanonicalMaster==='function')writeCanonicalMaster(data.state);
-
-  try{
-    await cloudClient.functions.invoke('send-push',{
-      body:{
-        action:'notify-event',
-        kind:'solicitation.created',
-        payload:{solicitation:s}
-      }
-    });
-  }catch(pushErr){
-    console.warn('V87 push solicitation',pushErr);
-  }
-
-  return true;
-}
-
-async function sendSolicitation87(ev){
-  ev?.preventDefault?.();
-  ev?.stopPropagation?.();
-  ev?.stopImmediatePropagation?.();
-
-  const me=await currentMember87();
-  if(!me){
-    return alert('Impossible de relier ton compte Supabase à une fiche membre. Vérifie l’adresse de connexion dans ta fiche Membre.');
-  }
-
-  const targets=chosenTargets87();
-  if(!targets.length){
-    return alert('Sélectionne au moins un destinataire.');
-  }
-
-  const type=document.getElementById('sol-target-type')?.value||'person';
-  const mode=document.getElementById('v63-sol-mode')?.value||'renfort';
-  const replacement=document.getElementById('v63-sol-replacement')?.value||'';
-
-  if(mode==='remplacement'&&!replacement){
-    return alert('Choisis le membre à remplacer.');
-  }
-
-  const s={
-    id:'s'+Date.now(),
-    from:memberName87(me),
-    fromMemberId:me.id,
-    createdByMemberId:me.id,
-    createdByName:memberName87(me),
-
-    targetType:type,
-    target:type==='com'
-      ?'Toute la Communication'
-      :targets.map(x=>x.label).join(', '),
-    targets:targets.map(x=>({type:x.type,value:x.value})),
-    targetMemberIds:type==='person'?targets.map(x=>x.value):[],
-
-    date:document.getElementById('sol-date')?.value||'',
-    event:document.getElementById('sol-event')?.value||'',
-    message:document.getElementById('sol-message')?.value||'',
-    deadline:document.getElementById('sol-deadline')?.value||'',
-    programId:document.getElementById('sol-program')?.value||'',
-
-    /* uniquement la Nature existante V63 */
-    mode,
-    requestKind:mode,
-    replacementMemberId:replacement,
-    replaceMemberId:replacement,
-
-    status:'pending',
-    responses:{},
-    decisionHistory:[],
-    createdAt:new Date().toISOString(),
-    updatedAt:new Date().toISOString()
-  };
-
-  solicitations.push(s);
-  try{persist?.()}catch(e){}
-
-  try{
-    await syncSolicitation87(s);
-  }catch(err){
-    solicitations=solicitations.filter(x=>x!==s);
-    try{persist?.()}catch(e){}
-    console.error('V87 solicitation',err);
-    return alert('La sollicitation n’a pas été enregistrée dans Supabase : '+(err?.message||err));
-  }
-
-  closeModal('solicitation-modal');
-  try{renderSolicitations?.()}catch(e){}
-  try{refresh84?.()}catch(e){}
-  alert('Sollicitation ponctuelle enregistrée dans Supabase.');
-}
-
-/* Capture AVANT tous les anciens onclick/submit. */
-document.addEventListener('click',function(ev){
-  const btn=ev.target?.closest?.('#solicitation-modal button');
-  if(!btn)return;
-  if(!/envoyer/i.test(btn.textContent||''))return;
-
-  ev.preventDefault();
-  ev.stopPropagation();
-  ev.stopImmediatePropagation();
-  sendSolicitation87(ev);
-},true);
-
-document.addEventListener('submit',function(ev){
-  const form=ev.target;
-  if(!form?.closest?.('#solicitation-modal'))return;
-  ev.preventDefault();
-  ev.stopPropagation();
-  ev.stopImmediatePropagation();
-  sendSolicitation87(ev);
-},true);
-
-document.addEventListener('change',function(ev){
-  if(ev.target?.id==='sol-target-type'){
-    /* après les anciens listeners, nous imposons notre version triée */
-    setTimeout(sortSolicitationForm87,0);
-  }
-},true);
-
-const openBefore87=window.openSolicitation;
-window.openSolicitation=function(){
-  const r=openBefore87?.apply(this,arguments);
-  setTimeout(()=>{
-    removeRecentDuplicateNature87();
-    sortSolicitationForm87();
-  },80);
-  return r;
-};
-
-
-/* ===========================================================
-   MES SERVICES — UN SEUL MODAL, CARTE DIRECTEMENT CLIQUABLE
-   =========================================================== */
-function services87(){
-  if(typeof items84==='function')return items84();
-  return [];
-}
-function status87(x){
-  if(typeof status84==='function')return status84(x);
-  return 'pending';
-}
-function completed87(v){
-  return ['accepted','confirmed','approved','partial','refused','declined','completed'].includes(String(v||'').toLowerCase());
-}
-function archiveSet87(){
-  try{return new Set(JSON.parse(localStorage.getItem('icc_v87_services_archive_'+String(mid84?.()||''))||'[]'))}
-  catch(e){return new Set()}
-}
-function saveArchiveSet87(s){
-  localStorage.setItem('icc_v87_services_archive_'+String(mid84?.()||''),JSON.stringify([...s]));
-}
-function key87(x){return x.k+':'+x.id}
-
-window.v87OpenServices=function(){
-  let modal=document.getElementById('v87-services-modal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='v87-services-modal';
-    modal.className='modal hidden fixed inset-0 flex items-center justify-center p-4';
-    document.body.appendChild(modal);
-  }
-
-  const arch=archiveSet87();
-  const all=services87().filter(x=>completed87(status87(x)));
-  const active=all.filter(x=>!arch.has(key87(x)));
-  const archived=all.filter(x=>arch.has(key87(x)));
-
-  const card=(x,isArchived)=>`<article class="v87-service" onclick="v87OpenServiceDetail('${x.k}','${esc87(x.id)}')">
-    <div class="flex justify-between gap-3">
-      <div>
-        <span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-        <b class="block mt-1">${esc87(x.title||'Service')}</b>
-        <small>${esc87(x.date||'')} · ${esc87(status87(x))}</small>
-      </div>
-      <button
-        class="${isArchived?'v81-good':'v81-warn'} h-fit"
-        onclick="event.stopPropagation();${isArchived?`v87RestoreService('${key87(x)}')`:`v87ArchiveService('${key87(x)}')`}">
-        ${isArchived?'Restaurer':'Archiver'}
-      </button>
-    </div>
-  </article>`;
-
-  modal.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto">
-    <div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10">
-      <div>
-        <h3 class="font-black">Mes services</h3>
-        <p class="text-xs">Clique directement sur une fiche pour ouvrir tous ses détails.</p>
-      </div>
-      <button onclick="closeModal('v87-services-modal')">✕</button>
-    </div>
-    <div class="p-4">
-      <h4 class="font-black mb-2">Mes services effectués / répondus</h4>
-      <div class="space-y-2">
-        ${active.map(x=>card(x,false)).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}
-      </div>
-      <h4 class="font-black mt-6 mb-2">Archives personnelles</h4>
-      <div class="space-y-2">
-        ${archived.map(x=>card(x,true)).join('')||'<p class="text-xs text-slate-400">Aucune archive.</p>'}
-      </div>
-    </div>
-  </div>`;
-
-  openModal('v87-services-modal');
-};
-
-window.v87OpenServiceDetail=function(k,id){
-  const x=services87().find(y=>y.k===k&&String(y.id)===String(id));
-  if(!x)return;
-
-  closeModal('v87-services-modal');
-
-  requestAnimationFrame(()=>{
-    if(typeof markSeen84==='function')markSeen84(x);
-    if(typeof openDetail84==='function')openDetail84(x);
-    else if(typeof v84OpenItem==='function')v84OpenItem(k,id);
-  });
-};
-
-window.v87ArchiveService=function(key){
-  const s=archiveSet87();s.add(key);saveArchiveSet87(s);v87OpenServices();
-};
-window.v87RestoreService=function(key){
-  const s=archiveSet87();s.delete(key);saveArchiveSet87(s);v87OpenServices();
-};
-
-/* Capture du bouton Tableau de bord avant tout onclick historique. */
-document.addEventListener('click',function(ev){
-  const btn=ev.target?.closest?.('#v84-dashboard button,#v83-dashboard button,#v49-dashboard button,.v84-dash-card');
-  if(!btn)return;
-  if(!/mes services/i.test(btn.textContent||''))return;
-  ev.preventDefault();
-  ev.stopPropagation();
-  ev.stopImmediatePropagation();
-  v87OpenServices();
-},true);
-
-/* On remplace aussi les appels directs éventuels. */
-window.v84OpenServices=window.v87OpenServices;
-
-
-/* ===========================================================
-   TRI LOGIQUE GLOBAL
-   =========================================================== */
-function sortSelect87(sel,mode){
-  if(!sel)return;
-  const value=sel.value;
-  const opts=[...sel.options];
-  const placeholders=opts.filter(o=>!o.value);
-  const normal=opts.filter(o=>o.value);
-
-  normal.sort((a,b)=>{
-    if(mode==='program'){
-      const pa=(programs||[]).find(p=>String(p.id)===String(a.value));
-      const pb=(programs||[]).find(p=>String(p.id)===String(b.value));
-      const da=Date.parse(pa?.start||pa?.date||'')||Number.MAX_SAFE_INTEGER;
-      const db=Date.parse(pb?.start||pb?.date||'')||Number.MAX_SAFE_INTEGER;
-      return da-db || a.text.localeCompare(b.text,'fr');
-    }
-    return a.text.localeCompare(b.text,'fr',{sensitivity:'base'});
-  });
-
-  sel.innerHTML='';
-  [...placeholders,...normal].forEach(o=>sel.appendChild(o));
-  sel.value=value;
-}
-function sortVisibleSelects87(root=document){
-  root.querySelectorAll('select').forEach(sel=>{
-    const id=(sel.id||'').toLowerCase();
-    const name=(sel.name||'').toLowerCase();
-
-    if(id.includes('program')||name.includes('program')){
-      sortSelect87(sel,'program');
-      return;
-    }
-
-    if(
-      id.includes('member')||
-      id.includes('person')||
-      id.includes('replacement')||
-      name.includes('member')||
-      name.includes('person')
-    ){
-      sortSelect87(sel,'alpha');
-    }
-  });
-}
-
-window.addEventListener('load',()=>setTimeout(()=>{
-  removeRecentDuplicateNature87();
-  sortVisibleSelects87();
-},1800));
-
-document.addEventListener('focusin',ev=>{
-  const modal=ev.target?.closest?.('.modal');
-  if(modal)setTimeout(()=>sortVisibleSelects87(modal),0);
-});
-
-console.info('ICC V87 sollicitations/services clean chargé');
-})();
-</script>
-
-
-<style id="icc-v88-css">
-.v88-target-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
-.v88-target-tab{border:1px solid #d8dee9;background:#fff;border-radius:12px;padding:9px;font-size:11px;font-weight:900}
-.v88-target-tab.active{background:#4c1d95;color:#fff;border-color:#4c1d95}
-.v88-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.v88-iconbtn{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;background:#fff;font-size:14px}
-.v88-iconbtn:hover{background:#f8fafc}
-.v88-scope{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;margin-right:6px}
-.v88-personal{background:#ede9fe;color:#6d28d9}
-.v88-pole{background:#dbeafe;color:#1d4ed8}
-.v88-com{background:#dcfce7;color:#15803d}
-#v84-dashboard{min-height:190px}
-</style>
-<script id="icc-v88-controller">
-(function(){
-'use strict';
-
-const E88=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const me88=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
-const mid88=()=>String(me88()?.id||'');
-const mname88=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
-const myPoles88=()=>new Set([...(me88()?.poles||[]),...(me88()?.refPoles||[])].map(String));
-
-function isAdmin88(){try{return typeof iccTechAdminRoot==='function'&&iccTechAdminRoot()}catch(e){return false}}
-function isDirection88(){
- const id=mid88();return isAdmin88()||String(appSettings?.responsableId||'')===id||String(appSettings?.adjointId||'')===id;
-}
-
-/* ======= SOLLICITATIONS : PERSONNE / PÔLE / COM ======= */
-function targetMode88(){
- return document.getElementById('sol-target-type')?.value||'person';
-}
-function setTargetMode88(type){
- const sel=document.getElementById('sol-target-type');if(sel)sel.value=type;
- document.querySelectorAll('.v88-target-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
- if(typeof sortSolicitationForm87==='function')sortSolicitationForm87();
- else if(typeof populateSolTargetsV9==='function')populateSolTargetsV9();
- setTimeout(()=>{if(typeof sortSolicitationForm87==='function')sortSolicitationForm87()},0);
-}
-window.v88SetTargetMode=setTargetMode88;
-
-function enhanceTargetSelector88(){
- const sel=document.getElementById('sol-target-type');if(!sel)return;
- sel.style.display='none';
- if(document.getElementById('v88-target-tabs'))return;
- const tabs=document.createElement('div');tabs.id='v88-target-tabs';tabs.className='v88-target-tabs';
- tabs.innerHTML=`
-  <button type="button" class="v88-target-tab" data-type="person" onclick="v88SetTargetMode('person')">👤 Personne</button>
-  <button type="button" class="v88-target-tab" data-type="pole" onclick="v88SetTargetMode('pole')">🗂️ Pôle</button>
-  <button type="button" class="v88-target-tab" data-type="com" onclick="v88SetTargetMode('com')">🌐 Toute la Com</button>`;
- sel.parentElement?.insertBefore(tabs,sel.nextSibling);
- setTargetMode88(sel.value||'person');
-}
-
-/* ======= PORTÉE D'UNE ALERTE ======= */
-function solScope88(s){
- let ts=Array.isArray(s?.targets)?s.targets:[];
- if(!ts.length&&s?.targetType)ts=[{type:s.targetType,value:s.target}];
- if(ts.some(t=>t?.type==='com')||s?.targetType==='com'||String(s?.target||'').toLowerCase()==='toute la communication')return 'com';
- if(ts.some(t=>t?.type==='person'&&String(t.value)===mid88()))return 'personal';
- const p=myPoles88();
- if(ts.some(t=>t?.type==='pole'&&p.has(String(t.value))))return 'pole';
+ const t=solTargets(x.raw);
+ if(t.some(z=>z?.type==='com'))return 'com';
+ if(t.some(z=>z?.type==='person'&&String(z.value)===myId()))return 'personal';
+ if(t.some(z=>z?.type==='pole'&&myPoles().has(String(z.value))))return 'pole';
  return 'personal';
 }
-function progScope88(p){
- if(p?.allCommunication===true||p?.audience==='com'||p?.scope==='com'||p?.targetType==='com')return 'com';
- if((p?.memberIds||[]).map(String).includes(mid88())||Object.values(p?.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(mid88())))return 'personal';
- const ps=myPoles88();if((p?.poles||[]).some(x=>ps.has(String(x))))return 'pole';
- return 'personal';
-}
-function scopeBadge88(x){
- const s=x.k==='p'?progScope88(x.raw):solScope88(x.raw);
- const map={personal:['PERSONNEL','v88-personal'],pole:['PÔLE','v88-pole'],com:['COM','v88-com']};
- return `<span class="v88-scope ${map[s][1]}">${map[s][0]}</span>`;
-}
+function scopeBadge(x){const s=scope(x),m={personal:['PERSONNEL','v91-personal'],pole:['PÔLE','v91-pole'],com:['COM','v91-com']};return `<span class="v91-scope ${m[s][1]}">${m[s][0]}</span>`}
 
-/* ======= COMPTEUR NON LU STABLE ======= */
-function readStore88(){
- try{
-  const obj=JSON.parse(localStorage.getItem('icc_v88_seen_'+mid88())||'{}')||{};
-  return obj;
- }catch(e){return {}}
-}
-function saveReadStore88(o){localStorage.setItem('icc_v88_seen_'+mid88(),JSON.stringify(o))}
-function itemVersion88(x){return String(x.raw?.updatedAt||x.raw?.updated_at||x.raw?.createdAt||x.raw?.date||'')}
-function isSeen88(x){
- const st=readStore88(),rec=st[(x.k+':'+x.id)];
- return !!rec && rec.version===itemVersion88(x);
-}
-function markSeen88(x){
- const st=readStore88();st[x.k+':'+x.id]={version:itemVersion88(x),seenAt:new Date().toISOString()};saveReadStore88(st);
- updateBell88();
-}
-function unreadItems88(){return items84().filter(x=>!isSeen88(x))}
-function updateBell88(){
- const n=unreadItems88().length,b=document.getElementById('notif-badge');
+/* ---------- stable bell = unread only ---------- */
+function seenKey(){return 'icc_v91_seen_'+myId()}
+function seen(){try{return JSON.parse(localStorage.getItem(seenKey())||'{}')||{}}catch(e){return {}}}
+function version(x){return String(x.raw?.updatedAt||x.raw?.updated_at||x.raw?.createdAt||x.raw?.date||'')}
+function isSeen(x){const r=seen()[x.k+':'+x.id];return !!r&&r.version===version(x)}
+function markSeen(x){const s=seen();s[x.k+':'+x.id]={version:version(x),seenAt:new Date().toISOString()};localStorage.setItem(seenKey(),JSON.stringify(s))}
+function unread(){return relevant().filter(x=>!isSeen(x))}
+function bell(){
+ const b=document.getElementById('notif-badge'),n=unread().length;
  if(b){b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
 }
-
-/* ======= ARCHIVE / CORBEILLE ======= */
-function canDeleteOwn88(x){
- if(isDirection88())return true;
- if(x.k==='s')return String(x.raw?.fromMemberId||x.raw?.createdByMemberId||'')===mid88();
- if(x.k==='p')return String(x.raw?.createdByMemberId||x.raw?.ownerMemberId||'')===mid88();
- return false;
-}
-async function sync88(){
- if(typeof iccStrictSync83==='function')return await iccStrictSync83('v88');
- if(typeof cloudPush==='function')return await cloudPush('v88');
- return false;
-}
-window.v88ArchiveItem=async function(k,id){
- const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x||!canDeleteOwn88(x))return alert('Accès refusé.');
- x.raw.archived=true;x.raw.deleted=false;x.raw.archivedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();
- try{persist?.()}catch(e){}
- await sync88();renderNotifications();if(typeof dashboard84==='function')dashboard84();
-};
-window.v88TrashItem=async function(k,id){
- const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x||!canDeleteOwn88(x))return alert('Accès refusé.');
- if(!confirm('Déplacer cet élément dans la corbeille ?'))return;
- x.raw.deleted=true;x.raw.archived=false;x.raw.deletedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();
- try{persist?.()}catch(e){}
- await sync88();renderNotifications();if(typeof dashboard84==='function')dashboard84();
-};
-
-/* ======= DROIT DE RÉPONSE ======= */
-function canRespondSol88(s){
- if(isAdmin88())return true;
- let ts=Array.isArray(s?.targets)?s.targets:[];
- if(!ts.length&&s?.targetType)ts=[{type:s.targetType,value:s.target}];
- const ps=myPoles88();
- return ts.some(t=>{
-  if(t?.type==='com')return true;
-  if(t?.type==='person')return String(t.value)===mid88();
-  if(t?.type==='pole')return ps.has(String(t.value));
-  return false;
- });
-}
-window.v83AnswerSolicitation=function(id,status){
- const s=(solicitations||[]).find(x=>String(x.id)===String(id));
- if(!s||!canRespondSol88(s))return alert('Tu peux consulter cette demande parce que tu l’as créée, mais seul un destinataire concerné peut y répondre.');
- let m=document.getElementById('v83-sol-answer');
- if(!m){m=document.createElement('div');m.id='v83-sol-answer';m.className='modal hidden fixed inset-0 z-[190] flex items-center justify-center p-4';document.body.appendChild(m)}
- const lab=status==='partial'?'Réserve':'Motif / commentaire';
- m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><h3 class="font-black">${status==='accepted'?'Accepter':status==='partial'?'Accepter partiellement':'Refuser'} — ${E88(s.event||'Sollicitation')}</h3><button onclick="closeModal('v83-sol-answer')">✕</button></div><div class="p-5"><label class="text-xs font-bold">${lab} — facultatif<textarea id="v83-sol-note" class="field" rows="3"></textarea></label><button class="v81-primary mt-4" onclick="v83CommitSolAnswer('${E88(id)}','${status}')">Confirmer</button></div></div>`;
- openModal('v83-sol-answer');
-};
-
-/* ======= NOTIFICATIONS CLIQUABLES + ACTIONS ======= */
 window.renderNotifications=function(){
  const list=document.getElementById('notification-list');if(!list)return;
- const all=items84(),un=all.filter(x=>!isSeen88(x)),rd=all.filter(x=>isSeen88(x));
- const card=x=>{
-  const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);
-  const canAct=canDeleteOwn88(x);
-  return `<div class="v84-item ${isSeen88(x)?'v84-read':'v84-unread'} mb-2">
-    <button class="w-full text-left" onclick="v88OpenItem('${x.k}','${E88(x.id)}')">
-      ${scopeBadge88(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-      <b class="block mt-1">${E88(x.title)}</b>
-      <p class="text-[10px] text-slate-500">${E88(String(x.date).replace('T',' '))}${x.location?' · '+E88(x.location):''}</p>
-      ${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E88(r.reserve)}</div>`:''}
-      ${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E88(r.reason)}</div>`:''}
-    </button>
-    ${canAct?`<div class="v88-actions"><button class="v88-iconbtn" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E88(x.id)}')">📦</button><button class="v88-iconbtn" title="Corbeille" onclick="v88TrashItem('${x.k}','${E88(x.id)}')">🗑️</button></div>`:''}
-  </div>`;
- };
- list.innerHTML=`<h4 class="text-xs font-black text-iccViolet mb-2">Nouveaux (${un.length})</h4>${un.map(card).join('')||'<p class="text-xs text-slate-400 mb-3">Aucun nouvel élément.</p>'}<h4 class="text-xs font-black text-slate-500 mt-4 mb-2">Programmes et sollicitations vus</h4>${rd.map(card).join('')||'<p class="text-xs text-slate-400">Aucun élément vu.</p>'}`;
- updateBell88();
-};
-window.v88OpenItem=function(k,id){
- const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x)return;
- markSeen88(x);renderNotifications();if(typeof openDetail84==='function')openDetail84(x);else if(typeof v84OpenItem==='function')v84OpenItem(k,id);
-};
-
-/* ======= MES SERVICES : ARCHIVE / CORBEILLE ======= */
-function patchServices88(){
- window.v87OpenServices=function(){
-  let modal=document.getElementById('v87-services-modal');
-  if(!modal){modal=document.createElement('div');modal.id='v87-services-modal';modal.className='modal hidden fixed inset-0 flex items-center justify-center p-4';document.body.appendChild(modal)}
-  const all=items84().filter(x=>finalStatus84(status84(x))&&!x.raw.archived&&!x.raw.deleted);
-  modal.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10"><div><h3 class="font-black">Mes services</h3><p class="text-xs">Clique sur une fiche pour ouvrir son détail.</p></div><button onclick="closeModal('v87-services-modal')">✕</button></div><div class="p-4 space-y-2">${all.map(x=>`<article class="v87-service" onclick="v87OpenServiceDetail('${x.k}','${E88(x.id)}')"><div class="flex justify-between gap-3"><div>${scopeBadge88(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E88(x.title)}</b><small>${E88(x.date||'')} · ${E88(status84(x))}</small></div>${canDeleteOwn88(x)?`<div class="v88-actions" onclick="event.stopPropagation()"><button class="v88-iconbtn" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E88(x.id)}')">📦</button><button class="v88-iconbtn" title="Corbeille" onclick="v88TrashItem('${x.k}','${E88(x.id)}')">🗑️</button></div>`:''}</div></article>`).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}</div></div>`;
-  openModal('v87-services-modal');
- };
- window.v84OpenServices=window.v87OpenServices;
-}
-patchServices88();
-
-/* ======= TABLEAU DE BORD FIXE ======= */
-function hardDashboard88(){
- const home=document.getElementById('page-home');if(!home)return;
- document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>{x.style.display='none';x.remove?.()});
- let b=document.getElementById('v84-dashboard');
- if(!b){b=document.createElement('section');b.id='v84-dashboard';b.className='bg-white border rounded-3xl p-5';home.appendChild(b)}
- b.style.display='';
- const pend=pending84(),train=(typeof trainingMine83==='function'?trainingMine83():[]),active=(typeof activeNow83==='function'?activeNow83():(members||[]).filter(m=>m.status==='active'&&!m.archived&&!m.deleted));
- b.innerHTML=`<div class="v84-dash-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v84-btn" onclick="v84OpenPlanning()">📅 Mon planning</button></div><div class="v84-dash-grid"><button class="v84-dash-card" onclick="v84OpenInbox()"><span>🔔</span><b>${pend.length}</b><small>Sollicitations et programmes en attente</small></button><button class="v84-dash-card" onclick="v87OpenServices()"><span>✅</span><b>${items84().filter(x=>finalStatus84(status84(x))).length}</b><small>Mes services</small></button><button class="v84-dash-card" onclick="showPage('formations')"><span>🎓</span><b>${train.length}</b><small>Membres en formation</small></button><button class="v84-dash-card" onclick="v83ShowActive?.()"><span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small></button></div>`;
-}
-
-/* Observer uniquement le dashboard : si une ancienne couche le remplace, V88 le remet. */
-let dashGuard88=false;
-const dashObs88=new MutationObserver(()=>{
- if(dashGuard88)return;
- dashGuard88=true;
- requestAnimationFrame(()=>{hardDashboard88();dashGuard88=false});
-});
-window.addEventListener('load',()=>setTimeout(()=>{
- hardDashboard88();updateBell88();
- const home=document.getElementById('page-home');if(home)dashObs88.observe(home,{childList:true,subtree:false});
-},1800));
-
-const show88=window.showPage;
-window.showPage=function(id){const r=show88?.apply(this,arguments);setTimeout(()=>{if(id==='home')hardDashboard88();if(id==='sollicitations')enhanceTargetSelector88();updateBell88()},80);return r};
-try{showPage=window.showPage}catch(e){}
-
-const openSol88=window.openSolicitation;
-window.openSolicitation=function(){const r=openSol88?.apply(this,arguments);setTimeout(()=>{enhanceTargetSelector88()},120);return r};
-
-setInterval(updateBell88,8000);
-
-console.info('ICC V88 chargé');
-})();
-</script>
-
-
-<style id="icc-v89-css">
-#v89-pending-modal{z-index:285!important}
-.v89-pending-card{border:1px solid #e2e8f0;border-radius:15px;padding:13px;background:#fff}
-.v89-pending-card:hover{border-color:#c4b5fd;background:#faf7ff}
-.v89-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.v89-icon{width:30px;height:30px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;display:inline-flex;align-items:center;justify-content:center}
-</style>
-
-<script id="icc-v89-controller">
-(function(){
-'use strict';
-const E89=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const me89=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
-const mid89=()=>String(me89()?.id||'');
-
-async function push89(kind,payload){
-  try{
-    if(typeof cloudClient==='undefined'||!cloudClient)return;
-    await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind,payload}});
-  }catch(e){console.warn('V89 push',kind,e)}
-}
-window.iccBusinessPush89=push89;
-
-/* ---------- helpers assignment diff ---------- */
-function programMemberSet89(p){
-  const s=new Set((p?.memberIds||[]).map(String));
-  for(const a of Object.values(p?.assignments||{}))for(const id of (a?.memberIds||[]))s.add(String(id));
-  return s;
-}
-function snapshotProgram89(p){
-  if(!p)return null;
-  return {
-    id:String(p.id),
-    status:p.status||'',
-    start:p.start||'',
-    end:p.end||'',
-    startTime:p.startTime||'',
-    endTime:p.endTime||'',
-    location:p.location||'',
-    poles:JSON.stringify(p.poles||[]),
-    memberIds:[...programMemberSet89(p)].sort(),
-    title:p.title||''
-  };
-}
-function operationalChange89(a,b){
-  if(!a||!b)return true;
-  return ['status','start','end','startTime','endTime','location','poles','title'].some(k=>String(a[k])!==String(b[k]))
-      || JSON.stringify(a.memberIds)!==JSON.stringify(b.memberIds);
-}
-
-/* ---------- PROGRAMME : push ciblés sur vrai changement ---------- */
-const saveProgramBefore89=window.saveProgram;
-window.saveProgram=async function(e){
-  const id=document.getElementById('prog-id')?.value||'';
-  const beforeP=id?(programs||[]).find(p=>String(p.id)===String(id)):null;
-  const before=snapshotProgram89(beforeP);
-  const beforeIds=new Set(before?.memberIds||[]);
-
-  const r=await saveProgramBefore89?.apply(this,arguments);
-
-  setTimeout(async()=>{
-    let p=id?(programs||[]).find(x=>String(x.id)===String(id)):null;
-    if(!p && !id)p=[...(programs||[])].reverse().find(Boolean);
-    if(!p)return;
-    const after=snapshotProgram89(p),afterIds=new Set(after.memberIds||[]);
-
-    if(!before){
-      await push89('program.created',{program:p});
-      return;
-    }
-
-    for(const m of afterIds)if(!beforeIds.has(m))await push89('program.assignment.added',{program:p,memberId:m});
-    for(const m of beforeIds)if(!afterIds.has(m))await push89('program.assignment.removed',{program:p,memberId:m});
-
-    if(before.status!=='cancelled'&&p.status==='cancelled'){
-      await push89('program.cancelled',{program:p});
-    }else if(before.status!=='postponed'&&p.status==='postponed'){
-      await push89('program.postponed',{program:p});
-    }else if(operationalChange89(before,after)){
-      await push89('program.updated',{program:p});
-    }
-  },180);
-  return r;
-};
-try{saveProgram=window.saveProgram}catch(e){}
-
-/* ---------- REPONSE PROGRAMME : direction/référents ---------- */
-const progRespBefore89=window.v80SaveProgramResponse;
-if(typeof progRespBefore89==='function'){
-  window.v80SaveProgramResponse=async function(pid,pole,mid,status){
-    const p=(programs||[]).find(x=>String(x.id)===String(pid));
-    const r=await progRespBefore89.apply(this,arguments);
-    setTimeout(()=>push89('program.response',{program:p,responderMemberId:mid,status}),80);
-    return r;
-  };
-}
-
-/* ---------- SOLLICITATION ACCEPTÉE : si elle modifie un programme ---------- */
-const solCommitBefore89=window.v83CommitSolAnswer;
-if(typeof solCommitBefore89==='function'){
-  window.v83CommitSolAnswer=async function(id,status){
-    const s=(solicitations||[]).find(x=>String(x.id)===String(id));
-    const p=s?.programId?(programs||[]).find(x=>String(x.id)===String(s.programId)):null;
-    const before=p?programMemberSet89(p):new Set();
-    const r=await solCommitBefore89.apply(this,arguments);
-    setTimeout(async()=>{
-      if(!p)return;
-      const after=programMemberSet89(p);
-      if(['accepted','partial'].includes(status)){
-        for(const m of after)if(!before.has(m))await push89('program.assignment.added',{program:p,memberId:m,source:'solicitation'});
-        for(const m of before)if(!after.has(m))await push89('program.assignment.removed',{program:p,memberId:m,source:'solicitation'});
-      }
-    },100);
-    return r;
-  };
-}
-
-/* ---------- INDISPONIBILITE : conflit programme ---------- */
-function conflicts89(req){
-  const rs=Date.parse(req?.start||0),re=Date.parse(req?.end||req?.start||0),id=String(req?.memberId||'');
-  if(!rs||!re||!id)return [];
-  return (programs||[]).filter(p=>{
-    if(p.archived||p.deleted||p.status==='cancelled')return false;
-    const ps=Date.parse(p.start||p.date||0),pe=Date.parse(p.end||p.start||p.date||0);
-    return programMemberSet89(p).has(id)&&ps<=re&&pe>=rs;
-  });
-}
-const availDecisionBefore89=window.v81SaveAvailabilityDecision;
-if(typeof availDecisionBefore89==='function'){
-  window.v81SaveAvailabilityDecision=async function(id,status){
-    const D=(()=>{try{return JSON.parse(localStorage.getItem('icc2_v30')||'{}')}catch(e){return {}}})();
-    const req=(D.availabilityRequests||[]).find(x=>String(x.id)===String(id));
-    const r=await availDecisionBefore89.apply(this,arguments);
-    if(req&&['approved','partial'].includes(status)){
-      setTimeout(()=>conflicts89(req).forEach(p=>push89('program.conflict',{program:p,request:req})),100);
-    }
-    return r;
-  };
-}
-
-/* ---------- MEMBRE : rôle/pôle/formation ---------- */
-const saveMemberBefore89=window.saveMember;
-window.saveMember=async function(e){
-  const id=document.getElementById('mem-id')?.value||'';
-  const before=id?(members||[]).find(x=>String(x.id)===String(id)):null;
-  const old=before?{role:before.role,poles:JSON.stringify(before.poles||[]),status:before.status}:null;
-  const r=await saveMemberBefore89?.apply(this,arguments);
-  setTimeout(async()=>{
-    const m=id?(members||[]).find(x=>String(x.id)===String(id)):[...(members||[])].reverse().find(Boolean);
-    if(!m||!old)return;
-    if(String(old.role)!==String(m.role))await push89('member.role.changed',{memberId:m.id,label:`Votre rôle est maintenant : ${m.role||'équipier'}.`});
-    if(old.poles!==JSON.stringify(m.poles||[]))await push89('member.pole.changed',{memberId:m.id,label:`Vos pôles ont été mis à jour : ${(m.poles||[]).join(', ')||'aucun'}.`});
-    if(old.status!=='training'&&m.status==='training')await push89('training.assigned',{memberId:m.id,label:"Vous êtes désormais indiqué(e) comme membre en formation."});
-  },120);
-  return r;
-};
-try{saveMember=window.saveMember}catch(e){}
-
-/* ---------- EN ATTENTE TABLEAU DE BORD : archive + corbeille ---------- */
-function pendingForDashboard89(){
-  if(typeof pending84==='function')return pending84().filter(x=>!x.raw.archived&&!x.raw.deleted);
-  return [];
-}
-function scopeBadge89(x){
-  try{return typeof scopeBadge88==='function'?scopeBadge88(x):''}catch(e){return ''}
-}
-function canManage89(x){
-  try{return typeof canDeleteOwn88==='function'?canDeleteOwn88(x):false}catch(e){return false}
-}
-window.v89OpenPending=function(){
-  let m=document.getElementById('v89-pending-modal');
-  if(!m){
-    m=document.createElement('div');
-    m.id='v89-pending-modal';
-    m.className='modal hidden fixed inset-0 flex items-center justify-center p-4';
-    document.body.appendChild(m);
-  }
-  const arr=pendingForDashboard89();
-  m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto">
-    <div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10">
-      <div><h3 class="font-black">Sollicitations et programmes en attente</h3><p class="text-xs">Tout ce qui attend une action de ta part ou concerne ton activité.</p></div>
-      <button onclick="closeModal('v89-pending-modal')">✕</button>
-    </div>
-    <div class="p-4 space-y-2">
-      ${arr.map(x=>`<article class="v89-pending-card">
-        <button class="w-full text-left" onclick="closeModal('v89-pending-modal');v88OpenItem('${x.k}','${E89(x.id)}')">
-          ${scopeBadge89(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-          <b class="block mt-1">${E89(x.title)}</b>
-          <p class="text-xs text-slate-500">${E89(String(x.date||'').replace('T',' '))}${x.location?' · '+E89(x.location):''}</p>
-        </button>
-        ${canManage89(x)?`<div class="v89-actions"><button class="v89-icon" title="Archiver" onclick="v88ArchiveItem('${x.k}','${E89(x.id)}');setTimeout(v89OpenPending,120)">📦</button><button class="v89-icon" title="Corbeille" onclick="v88TrashItem('${x.k}','${E89(x.id)}');setTimeout(v89OpenPending,120)">🗑️</button></div>`:''}
-      </article>`).join('')||'<p class="text-xs text-slate-400">Aucun élément en attente.</p>'}
-    </div>
-  </div>`;
-  openModal('v89-pending-modal');
-};
-
-/* Dashboard : remplace l'ouverture de la carte "en attente" */
-function patchDashboard89(){
-  const d=document.getElementById('v84-dashboard');if(!d)return;
-  const card=[...d.querySelectorAll('button')].find(b=>/sollicitations et programmes en attente/i.test(b.textContent||''));
-  if(card)card.onclick=ev=>{ev.preventDefault();v89OpenPending()};
-}
-const dashObserver89=new MutationObserver(()=>patchDashboard89());
-addEventListener('load',()=>setTimeout(()=>{
-  patchDashboard89();
-  const d=document.getElementById('v84-dashboard');if(d)dashObserver89.observe(d,{childList:true,subtree:true});
-},1900));
-
-/* On remplace aussi l'appel direct si une ancienne couche réutilise v84OpenInbox. */
-window.v84OpenInbox=window.v89OpenPending;
-
-/* ---------- Évaluation : si un futur formulaire expose evaluateeMemberId ---------- */
-document.addEventListener('icc:evaluation-assigned',ev=>{
-  const d=ev.detail||{};if(d.memberId)push89('evaluation.assigned',d);
-});
-
-console.info('ICC V89 push métier chargé');
-})();
-</script>
-
-
-<style id="icc-v90-css">
-#v84-dashboard{display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;transition:none!important;animation:none!important}
-#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard{display:none!important}
-</style>
-
-<script id="icc-v90-dashboard-cloche-stable">
-(function(){
-'use strict';
-
-const E90=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const mid90=()=>String(localStorage.getItem('icc2_member_id')||'');
-
-/* =========================================================
-   SOURCE UNIQUE DES ÉLÉMENTS CONCERNANT LE PROFIL
-   ========================================================= */
-function allRelevant90(){
-  try{
-    if(typeof items84==='function')return items84().filter(x=>!x.raw?.archived&&!x.raw?.deleted);
-  }catch(e){}
-  return [];
-}
-function pending90(){
-  return allRelevant90().filter(x=>{
-    const s=typeof status84==='function'?status84(x):(x.raw?.status||'pending');
-    return !['accepted','confirmed','approved','partial','refused','declined','cancelled','completed'].includes(String(s||'').toLowerCase());
-  });
-}
-
-/* =========================================================
-   CLOCHE = UNIQUEMENT NON LUS
-   ========================================================= */
-function seenStore90(){
-  try{return JSON.parse(localStorage.getItem('icc_v90_seen_'+mid90())||'{}')||{}}
-  catch(e){return {}}
-}
-function saveSeen90(o){localStorage.setItem('icc_v90_seen_'+mid90(),JSON.stringify(o))}
-function version90(x){return String(x.raw?.updatedAt||x.raw?.updated_at||x.raw?.createdAt||x.raw?.date||'')}
-function isSeen90(x){const r=seenStore90()[x.k+':'+x.id];return !!r&&r.version===version90(x)}
-function markSeen90(x){
-  const s=seenStore90();s[x.k+':'+x.id]={version:version90(x),seenAt:new Date().toISOString()};saveSeen90(s);
-}
-function unread90(){return allRelevant90().filter(x=>!isSeen90(x))}
-function updateBell90(){
-  const n=unread90().length,b=document.getElementById('notif-badge');
-  if(b){b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
-}
-
-/* Ouverture de la cloche = les éléments affichés deviennent lus immédiatement,
-   puis restent disponibles dans "En attente". */
-window.renderNotifications=function(){
-  const list=document.getElementById('notification-list');if(!list)return;
-  const un=unread90();
-  un.forEach(markSeen90);
-  updateBell90();
-
-  const card=x=>{
-    const r=x.k==='p'?(typeof pResp84==='function'?pResp84(x.raw):null):(typeof sResp84==='function'?sResp84(x.raw):null);
-    const scope=typeof scopeBadge88==='function'?scopeBadge88(x):'';
-    return `<button class="v84-item v84-read w-full text-left mb-2" onclick="v90OpenItem('${x.k}','${E90(x.id)}')">
-      ${scope}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-      <b class="block mt-1">${E90(x.title)}</b>
-      <p class="text-[10px] text-slate-500">${E90(String(x.date||'').replace('T',' '))}${x.location?' · '+E90(x.location):''}</p>
-      ${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E90(r.reserve)}</div>`:''}
-      ${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E90(r.reason)}</div>`:''}
-    </button>`;
-  };
-
-  list.innerHTML=un.length
-    ? un.map(card).join('')
-    : '<div class="text-xs text-slate-400">Aucune nouvelle notification.</div>';
+ const arr=unread();arr.forEach(markSeen);bell();
+ list.innerHTML=arr.length?arr.map(x=>`<button class="v91-item v91-item-click w-full text-left mb-2" onclick="v91OpenItem('${x.k}','${E(x.id)}')">${scopeBadge(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E(x.title)}</b><p class="text-[10px] text-slate-500">${E(String(x.date).replace('T',' '))}${x.location?' · '+E(x.location):''}</p></button>`).join(''):'<div class="text-xs text-slate-400">Aucune nouvelle notification.</div>';
 };
 window.toggleNotifications=function(){
-  const p=document.getElementById('notification-panel');if(!p)return;
-  const opening=p.classList.contains('hidden');
-  p.classList.toggle('hidden');
-  if(opening)renderNotifications();
+ const p=document.getElementById('notification-panel');if(!p)return;
+ const opening=p.classList.contains('hidden');p.classList.toggle('hidden');if(opening)renderNotifications();
 };
 
-/* =========================================================
-   EN ATTENTE = TOUS LES ÉLÉMENTS ACTIFS, LUS OU NON
-   ========================================================= */
-function canManage90(x){
-  try{return typeof canDeleteOwn88==='function'?canDeleteOwn88(x):false}catch(e){return false}
+/* ---------- dashboard, one renderer ---------- */
+function activeMembers(){
+ let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
+ const req=D.availabilityRequests||[],now=Date.now();
+ return (members||[]).filter(m=>!m.archived&&!m.deleted&&!m.deletedAt&&m.status!=='inactive'&&!req.some(r=>String(r.memberId)===String(m.id)&&['approved','partial'].includes(r.status)&&!r.archived&&!r.deleted&&Date.parse(r.start)<=now&&Date.parse(r.end)>=now))
+ .sort((a,b)=>alpha(memberName(a),memberName(b)));
 }
-window.v90OpenPending=function(){
-  let m=document.getElementById('v90-pending-modal');
-  if(!m){
-    m=document.createElement('div');
-    m.id='v90-pending-modal';
-    m.className='modal hidden fixed inset-0 z-[290] flex items-center justify-center p-4';
-    document.body.appendChild(m);
-  }
-  const arr=pending90();
-  m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto">
-    <div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0 z-10">
-      <div>
-        <h3 class="font-black">Sollicitations et programmes en attente</h3>
-        <p class="text-xs">Ils restent ici jusqu’à réponse, archivage ou suppression.</p>
-      </div>
-      <button onclick="closeModal('v90-pending-modal')">✕</button>
-    </div>
-    <div class="p-4 space-y-2">
-      ${arr.map(x=>`<article class="v89-pending-card">
-        <button class="w-full text-left" onclick="closeModal('v90-pending-modal');v90OpenItem('${x.k}','${E90(x.id)}')">
-          ${typeof scopeBadge88==='function'?scopeBadge88(x):''}
-          <span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span>
-          <b class="block mt-1">${E90(x.title)}</b>
-          <p class="text-xs text-slate-500">${E90(String(x.date||'').replace('T',' '))}${x.location?' · '+E90(x.location):''}</p>
-        </button>
-        ${canManage90(x)?`<div class="v89-actions">
-          <button class="v89-icon" title="Archiver" onclick="event.stopPropagation();v88ArchiveItem('${x.k}','${E90(x.id)}');setTimeout(v90RefreshAll,160)">📦</button>
-          <button class="v89-icon" title="Corbeille" onclick="event.stopPropagation();v88TrashItem('${x.k}','${E90(x.id)}');setTimeout(v90RefreshAll,160)">🗑️</button>
-        </div>`:''}
-      </article>`).join('')||'<p class="text-xs text-slate-400">Aucun élément en attente.</p>'}
-    </div>
-  </div>`;
-  openModal('v90-pending-modal');
-};
-window.v84OpenInbox=window.v90OpenPending;
-window.v89OpenPending=window.v90OpenPending;
-
-/* =========================================================
-   OUVRIR DÉTAIL
-   ========================================================= */
-window.v90OpenItem=function(k,id){
-  const x=allRelevant90().find(y=>y.k===k&&String(y.id)===String(id));if(!x)return;
-  markSeen90(x);updateBell90();
-  if(typeof openDetail84==='function')openDetail84(x);
-  else if(typeof v84OpenItem==='function')v84OpenItem(k,id);
-};
-
-/* =========================================================
-   MES SERVICES : RECÂBLAGE FORCÉ
-   ========================================================= */
-function openServices90(){
-  if(typeof v87OpenServices==='function')return v87OpenServices();
-  if(typeof v84OpenServices==='function')return v84OpenServices();
+function trainingMine(){
+ const m=me();if(!m)return[];const rp=new Set(m.refPoles||[]);
+ return (members||[]).filter(x=>!x.archived&&!x.deleted&&x.status==='training'&&((x.poles||[]).some(p=>rp.has(p))||String(x.trainingResponsibleId||x.trainingRespId||'')===myId())).sort((a,b)=>alpha(memberName(a),memberName(b)));
 }
-window.v90OpenServices=openServices90;
+function dashboard(){
+ const home=document.getElementById('page-home');if(!home)return;
+ document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.remove());
+ let d=document.getElementById('v91-dashboard');if(!d){d=document.createElement('section');d.id='v91-dashboard';d.className='mt-6 bg-white border rounded-3xl p-5';home.appendChild(d)}
+ d.innerHTML=`<div class="v91-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v91-btn" onclick="v83OpenPlanning?.()">📅 Mon planning</button></div><div class="v91-grid"><button class="v91-card" onclick="v91OpenPending()"><span>🔔</span><b>${pending().length}</b><small>Sollicitations et programmes en attente</small></button><button class="v91-card" onclick="v91OpenServices()"><span>✅</span><b>${completed().length}</b><small>Mes services</small></button><button class="v91-card" onclick="showPage('formations')"><span>🎓</span><b>${trainingMine().length}</b><small>Membres en formation</small></button><button class="v91-card" onclick="v91ShowActive()"><span>👥</span><b>${activeMembers().length}</b><small>Membres actifs maintenant</small></button></div>`;
+}
+window.v91ShowActive=function(){
+ let m=document.getElementById('v91-active');if(!m){m=document.createElement('div');m.id='v91-active';m.className='modal hidden fixed inset-0 z-[300] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const a=activeMembers();
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><h3 class="font-black">Membres actifs maintenant (${a.length})</h3><button onclick="closeModal('v91-active')">✕</button></div><div class="p-4 max-h-[70vh] overflow-auto space-y-2">${a.map(x=>`<div class="v91-item"><b>${E(memberName(x))}</b><p class="text-xs text-slate-500">${E((x.poles||[]).join(', '))}</p></div>`).join('')}</div></div>`;openModal('v91-active');
+};
 
-/* =========================================================
-   TABLEAU DE BORD : UNE SEULE VERSION, RECONSTRUITE EN PLACE
-   ========================================================= */
-function ensureDashboard90(){
-  const home=document.getElementById('page-home');if(!home)return;
+/* ---------- item management ---------- */
+function canManage(x){
+ if(direction())return true;
+ if(x.k==='s')return String(x.raw?.fromMemberId||x.raw?.createdByMemberId||'')===myId();
+ if(x.k==='p')return String(x.raw?.createdByMemberId||x.raw?.ownerMemberId||'')===myId();
+ return false;
+}
+async function archiveItem(k,id){
+ const x=relevant().find(y=>y.k===k&&y.id===String(id));if(!x||!canManage(x))return alert('Accès refusé.');
+ x.raw.archived=true;x.raw.deleted=false;x.raw.archivedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();try{persist?.()}catch(e){}
+ if(await syncCloud('archive'))refresh();
+}
+async function trashItem(k,id){
+ const x=relevant().find(y=>y.k===k&&y.id===String(id));if(!x||!canManage(x))return alert('Accès refusé.');
+ if(!confirm('Déplacer cet élément dans la corbeille ?'))return;
+ x.raw.deleted=true;x.raw.archived=false;x.raw.deletedAt=new Date().toISOString();x.raw.updatedAt=new Date().toISOString();try{persist?.()}catch(e){}
+ if(await syncCloud('trash'))refresh();
+}
+window.v91ArchiveItem=archiveItem;window.v91TrashItem=trashItem;
 
-  /* Supprimer réellement les anciens dashboards. */
-  document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.remove());
+/* emitted solicitation delete = inactive for all recipients because deleted is synced */
+window.v91DeleteEmittedSolicitation=async function(id){
+ const s=(solicitations||[]).find(x=>String(x.id)===String(id));
+ if(!s||String(s.fromMemberId||s.createdByMemberId||'')!==myId())return alert('Tu ne peux supprimer que tes propres sollicitations émises.');
+ if(!confirm('Supprimer cette sollicitation pour tous les destinataires ?'))return;
+ s.deleted=true;s.archived=false;s.deletedAt=new Date().toISOString();s.updatedAt=new Date().toISOString();try{persist?.()}catch(e){}
+ if(await syncCloud('delete-emitted'))refresh();
+};
 
-  let d=document.getElementById('v84-dashboard');
-  if(!d){
-    d=document.createElement('section');
-    d.id='v84-dashboard';
-    d.className='bg-white border rounded-3xl p-5';
-    home.appendChild(d);
-  }
+/* ---------- pending modal ---------- */
+window.v91OpenPending=function(){
+ let m=document.getElementById('v91-pending');if(!m){m=document.createElement('div');m.id='v91-pending';m.className='modal hidden fixed inset-0 z-[301] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const arr=pending();
+ const card=x=>`<article class="v91-item"><button class="w-full text-left v91-item-click" onclick="closeModal('v91-pending');v91OpenItem('${x.k}','${E(x.id)}')">${scopeBadge(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E(x.title)}</b><p class="text-xs text-slate-500">${E(String(x.date).replace('T',' '))}${x.location?' · '+E(x.location):''}</p></button>${canManage(x)?`<div class="v91-actions"><button class="v91-icon" title="Archiver" onclick="v91ArchiveItem('${x.k}','${E(x.id)}')">📦</button><button class="v91-icon" title="Corbeille" onclick="v91TrashItem('${x.k}','${E(x.id)}')">🗑️</button></div>`:''}</article>`;
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Sollicitations et programmes en attente</h3><p class="text-xs">Ils restent ici jusqu’à réponse, archivage ou suppression.</p></div><button onclick="closeModal('v91-pending')">✕</button></div><div class="p-4 space-y-2">${arr.map(card).join('')||'<p class="text-xs text-slate-400">Aucun élément en attente.</p>'}</div></div>`;openModal('v91-pending');
+};
 
-  const pend=pending90();
-  const done=allRelevant90().filter(x=>{
-    const s=typeof status84==='function'?status84(x):(x.raw?.status||'');
-    return ['accepted','confirmed','approved','partial','refused','declined','completed'].includes(String(s).toLowerCase());
-  });
-  const train=typeof trainingMine83==='function'?trainingMine83():[];
-  const active=typeof activeNow83==='function'?activeNow83():(members||[]).filter(m=>m.status==='active'&&!m.archived&&!m.deleted);
+/* ---------- services ---------- */
+function serviceArchive(){try{return new Set(JSON.parse(localStorage.getItem('icc_v91_services_archive_'+myId())||'[]'))}catch(e){return new Set()}}
+function saveServiceArchive(s){localStorage.setItem('icc_v91_services_archive_'+myId(),JSON.stringify([...s]))}
+const ik=x=>x.k+':'+x.id;
+window.v91OpenServices=function(){
+ let m=document.getElementById('v91-services');if(!m){m=document.createElement('div');m.id='v91-services';m.className='modal hidden fixed inset-0 z-[302] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const a=serviceArchive(),done=completed().filter(x=>!a.has(ik(x))),arch=completed().filter(x=>a.has(ik(x)));
+ const card=(x,isA)=>`<article class="v91-item v91-item-click" onclick="closeModal('v91-services');v91OpenItem('${x.k}','${E(x.id)}')"><div class="flex justify-between gap-3"><div>${scopeBadge(x)}<span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E(x.title)}</b><small>${E(x.date)} · ${E(itemStatus(x))}</small></div><button class="${isA?'v81-good':'v81-warn'} h-fit" onclick="event.stopPropagation();${isA?`v91RestoreService('${ik(x)}')`:`v91ArchiveService('${ik(x)}')`}">${isA?'Restaurer':'Archiver'}</button></div></article>`;
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Mes services</h3><p class="text-xs">Clique directement sur une fiche pour voir le détail.</p></div><button onclick="closeModal('v91-services')">✕</button></div><div class="p-4"><div class="space-y-2">${done.map(x=>card(x,false)).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}</div><h4 class="font-black mt-6 mb-2">Archives personnelles</h4><div class="space-y-2">${arch.map(x=>card(x,true)).join('')||'<p class="text-xs text-slate-400">Aucune archive.</p>'}</div></div></div>`;openModal('v91-services');
+};
+window.v91ArchiveService=k=>{const s=serviceArchive();s.add(k);saveServiceArchive(s);v91OpenServices()};
+window.v91RestoreService=k=>{const s=serviceArchive();s.delete(k);saveServiceArchive(s);v91OpenServices()};
 
-  d.innerHTML=`<div class="v84-dash-head">
-    <div>
-      <h2 class="font-black text-iccViolet">Tableau de bord</h2>
-      <p class="text-xs text-slate-500">Tes informations et services personnels.</p>
-    </div>
-    <button class="v84-btn" type="button" onclick="v84OpenPlanning()">📅 Mon planning</button>
-  </div>
-  <div class="v84-dash-grid">
-    <button class="v84-dash-card" type="button" onclick="v90OpenPending()">
-      <span>🔔</span><b>${pend.length}</b><small>Sollicitations et programmes en attente</small>
-    </button>
-    <button class="v84-dash-card" type="button" onclick="v90OpenServices()">
-      <span>✅</span><b>${done.length}</b><small>Mes services</small>
-    </button>
-    <button class="v84-dash-card" type="button" onclick="showPage('formations')">
-      <span>🎓</span><b>${train.length}</b><small>Membres en formation</small>
-    </button>
-    <button class="v84-dash-card" type="button" onclick="v83ShowActive?.()">
-      <span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small>
-    </button>
-  </div>`;
+/* ---------- detail ---------- */
+window.v91OpenItem=function(k,id){
+ const x=relevant().find(y=>y.k===k&&y.id===String(id));if(!x)return;markSeen(x);bell();
+ let m=document.getElementById('v91-detail');if(!m){m=document.createElement('div');m.id='v91-detail';m.className='modal hidden fixed inset-0 z-[303] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const r=x.k==='p'?programResponse(x.raw):solicitationResponse(x.raw),raw=x.raw;
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><div><span class="text-xs">${x.k==='p'?'Programme':'Sollicitation ponctuelle'}</span><h3 class="font-black">${E(x.title)}</h3></div><button onclick="closeModal('v91-detail')">✕</button></div><div class="p-5 text-sm space-y-2"><p><b>Date :</b> ${E(String(x.date).replace('T',' '))}</p><p><b>Lieu :</b> ${E(raw.location||'—')}</p>${x.k==='s'?`<p><b>Émetteur :</b> ${E(raw.from||'—')}</p><p><b>Destinataires :</b> ${E(raw.target||solTargets(raw).map(t=>t.value).join(', '))}</p><p><b>Message :</b> ${E(raw.message||'—')}</p>`:`<p><b>Pôles :</b> ${E((raw.poles||[]).join(', ')||'—')}</p><p><b>Description :</b> ${E(raw.desc||raw.generalNote||'—')}</p>`}${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E(r.reserve)}</div>`:''}${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E(r.reason)}</div>`:''}</div></div>`;openModal('v91-detail');
+};
 
-  d.style.display='block';
+/* ---------- solicitation target accumulator ---------- */
+let targetState={person:new Set(),pole:new Set(),com:false,tab:'person'};
+function resetTargets(){targetState={person:new Set(),pole:new Set(),com:false,tab:'person'}}
+function targetLabel(type,id){
+ if(type==='person')return memberName((members||[]).find(m=>String(m.id)===String(id)));
+ return String(id);
+}
+function renderTargetPicker(){
+ const host=document.getElementById('v91-target-picker');if(!host)return;
+ const active=targetState.tab;
+ let options='';
+ if(active==='person')options=[...(members||[])].filter(m=>!m.archived&&!m.deleted&&m.status!=='inactive').sort((a,b)=>alpha(memberName(a),memberName(b))).map(m=>`<label class="text-xs border rounded-lg p-2 flex gap-2 items-center"><input type="checkbox" value="${E(m.id)}" ${targetState.person.has(String(m.id))?'checked':''} onchange="v91ToggleTarget('person','${E(m.id)}',this.checked)">${E(memberName(m))}</label>`).join('');
+ if(active==='pole')options=[...(poles||[])].sort(alpha).map(p=>`<label class="text-xs border rounded-lg p-2 flex gap-2 items-center"><input type="checkbox" value="${E(p)}" ${targetState.pole.has(String(p))?'checked':''} onchange="v91ToggleTarget('pole','${E(p)}',this.checked)">${E(p)}</label>`).join('');
+ if(active==='com')options=`<label class="text-xs border rounded-lg p-3 flex gap-2 items-center"><input type="checkbox" ${targetState.com?'checked':''} onchange="v91ToggleTarget('com','all',this.checked)"> Toute la Communication</label>`;
+ const chips=[...targetState.person].map(id=>`<span class="v91-chip">👤 ${E(targetLabel('person',id))}<button type="button" onclick="v91ToggleTarget('person','${E(id)}',false)">✕</button></span>`).concat([...targetState.pole].map(p=>`<span class="v91-chip">🗂️ ${E(p)}<button type="button" onclick="v91ToggleTarget('pole','${E(p)}',false)">✕</button></span>`)).concat(targetState.com?[`<span class="v91-chip">🌐 Toute la Com <button type="button" onclick="v91ToggleTarget('com','all',false)">✕</button></span>`]:[]);
+ host.innerHTML=`<div class="v91-target-tabs"><button type="button" class="v91-target-tab ${active==='person'?'active':''}" onclick="v91TargetTab('person')">👤 Personne</button><button type="button" class="v91-target-tab ${active==='pole'?'active':''}" onclick="v91TargetTab('pole')">🗂️ Pôle</button><button type="button" class="v91-target-tab ${active==='com'?'active':''}" onclick="v91TargetTab('com')">🌐 Toute la Com</button></div><div class="v91-target-list space-y-2">${options}</div><div class="flex flex-wrap gap-2 mt-3">${chips.join('')||'<span class="text-[10px] text-slate-400">Aucun destinataire ajouté.</span>'}</div>`;
+}
+window.v91TargetTab=t=>{targetState.tab=t;renderTargetPicker()}
+window.v91ToggleTarget=(t,id,on)=>{if(t==='com')targetState.com=!!on;else{const s=targetState[t];on?s.add(String(id)):s.delete(String(id))}renderTargetPicker()}
+function targetArray(){const a=[...targetState.person].map(v=>({type:'person',value:v})).concat([...targetState.pole].map(v=>({type:'pole',value:v})));if(targetState.com)a.push({type:'com',value:'all'});return a}
+
+function enhanceSolicitation(){
+ const modal=document.getElementById('solicitation-modal'),form=modal?.querySelector('form');if(!form)return;
+ resetTargets();
+ const oldType=document.getElementById('sol-target-type');if(oldType)oldType.closest('label')?.classList.add('hidden');
+ const oldWrap=document.getElementById('sol-target-wrap');if(oldWrap)oldWrap.style.display='none';
+ let host=document.getElementById('v91-target-picker');if(!host){host=document.createElement('div');host.id='v91-target-picker';host.className='bg-slate-50 border rounded-2xl p-4';host.innerHTML='';(oldWrap||oldType?.closest('label'))?.insertAdjacentElement('afterend',host)}
+ renderTargetPicker();
+ /* sort program dropdown by imminence */
+ const pg=document.getElementById('sol-program');if(pg){const val=pg.value;pg.innerHTML='<option value="">— Aucun —</option>'+[...(programs||[])].filter(p=>!p.archived&&!p.deleted).sort((a,b)=>(Date.parse(a.start||a.date||'')||9e15)-(Date.parse(b.start||b.date||'')||9e15)).map(p=>`<option value="${E(p.id)}">${E(p.title||'Programme')} · ${E(p.start||p.date||'')}</option>`).join('');pg.value=val}
+ const send=[...form.querySelectorAll('button')].find(b=>/envoyer/i.test(b.textContent||''));if(send){send.type='button';send.onclick=e=>{e.preventDefault();e.stopImmediatePropagation();saveSolicitation91()}}
+}
+async function currentMemberServer(){
+ if(me())return me();
+ try{const {data,error}=await cloudClient.functions.invoke('send-push',{body:{action:'profile-link'}});if(!error&&data?.member){localStorage.setItem('icc2_member_id',String(data.member.id));return data.member}}catch(e){}
+ return null;
+}
+async function saveSolicitation91(){
+ const m=await currentMemberServer();if(!m)return alert('Aucune fiche membre liée à ce compte.');
+ const targets=targetArray();if(!targets.length)return alert('Ajoute au moins un destinataire : personne, pôle ou Toute la Com.');
+ const mode=document.getElementById('v63-sol-mode')?.value||'renfort',replacement=document.getElementById('v63-sol-replacement')?.value||'';
+ if(mode==='remplacement'&&!replacement)return alert('Choisis le membre à remplacer.');
+ const labels=targets.map(t=>t.type==='person'?memberName((members||[]).find(m=>String(m.id)===String(t.value))):t.type==='pole'?t.value:'Toute la Communication');
+ const s={id:'s'+Date.now(),from:memberName(m),fromMemberId:m.id,createdByMemberId:m.id,createdByName:memberName(m),targetType:targets.length===1?targets[0].type:'mixed',target:labels.join(', '),targets,targetMemberIds:targets.filter(t=>t.type==='person').map(t=>t.value),date:document.getElementById('sol-date')?.value||'',event:document.getElementById('sol-event')?.value||'',message:document.getElementById('sol-message')?.value||'',deadline:document.getElementById('sol-deadline')?.value||'',programId:document.getElementById('sol-program')?.value||'',mode,requestKind:mode,replacementMemberId:replacement,replaceMemberId:replacement,status:'pending',responses:{},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ solicitations.push(s);try{persist?.()}catch(e){}
+ if(!await syncCloud('solicitation')){solicitations=solicitations.filter(x=>x!==s);try{persist?.()}catch(e){}return}
+ try{await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind:'solicitation.created',payload:{solicitation:s}}})}catch(e){}
+ closeModal('solicitation-modal');refresh();try{renderSolicitations?.()}catch(e){}alert('Sollicitation ponctuelle enregistrée dans Supabase.');
+}
+/* capture beats legacy handlers */
+document.addEventListener('click',e=>{const b=e.target?.closest?.('#solicitation-modal button');if(b&&/envoyer/i.test(b.textContent||'')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();saveSolicitation91()}},true);
+document.addEventListener('submit',e=>{if(e.target?.closest?.('#solicitation-modal')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();saveSolicitation91()}},true);
+const openSol=window.openSolicitation;window.openSolicitation=function(){const r=openSol?.apply(this,arguments);setTimeout(enhanceSolicitation,100);return r}
+
+/* ---------- archives consolidated ---------- */
+function modelsArr(){try{return typeof models63==='function'?models63():[]}catch(e){return[]}}
+function saveModels(a){try{if(typeof saveModels63==='function')saveModels63(a)}catch(e){}}
+function pilot(){let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){};D.availabilityRequests=Array.isArray(D.availabilityRequests)?D.availabilityRequests:[];return D}
+function lifecycle(){appSettings.lifecycle81=appSettings.lifecycle81||{poles:{archived:[],deleted:[]}};appSettings.lifecycle81.poles=appSettings.lifecycle81.poles||{archived:[],deleted:[]};return appSettings.lifecycle81}
+async function restore91(kind,id){
+ if(kind==='member'){const x=members.find(m=>String(m.id)===String(id));if(x){x.archived=false;x.deleted=false;x.archivedAt='';x.deletedAt='';if(x.status==='inactive')x.status='active'}}
+ if(kind==='program'){const x=programs.find(m=>String(m.id)===String(id));if(x){x.archived=false;x.deleted=false;x.archivedAt='';x.deletedAt=''}}
+ if(kind==='solicitation'){const x=solicitations.find(m=>String(m.id)===String(id));if(x){x.archived=false;x.deleted=false;x.archivedAt='';x.deletedAt=''}}
+ if(kind==='model'){const a=modelsArr(),x=a.find(m=>String(m.id)===String(id));if(x){x.archived=false;x.deleted=false;x.archivedAt='';x.deletedAt='';saveModels(a)}}
+ if(kind==='availability'){const D=pilot(),x=D.availabilityRequests.find(m=>String(m.id)===String(id));if(x){x.archived=false;x.deleted=false;x.archivedAt='';x.deletedAt='';localStorage.setItem('icc2_v30',JSON.stringify(D));window.__ICC_V30_STATE=D}}
+ if(kind==='pole'){const L=lifecycle(),x=[...L.poles.archived,...L.poles.deleted].find(p=>String(p.name)===String(id));if(x){if(!poles.includes(x.name))poles.push(x.name);appSettings.poleMeta=appSettings.poleMeta||{};appSettings.poleMeta[x.name]=x.meta||{};L.poles.archived=L.poles.archived.filter(p=>p.name!==x.name);L.poles.deleted=L.poles.deleted.filter(p=>p.name!==x.name)}}
+ try{persist?.();saveSettings?.()}catch(e){}
+ if(await syncCloud('restore'))renderArchives91();
+}
+async function purge91(kind,id){
+ if(!direction())return alert('Suppression définitive réservée à la Direction ou à l’Admin technique.');
+ if(!confirm('Supprimer définitivement cet élément ?'))return;
+ if(kind==='member')members=members.filter(x=>String(x.id)!==String(id));
+ if(kind==='program')programs=programs.filter(x=>String(x.id)!==String(id));
+ if(kind==='solicitation')solicitations=solicitations.filter(x=>String(x.id)!==String(id));
+ if(kind==='model'){const a=modelsArr().filter(x=>String(x.id)!==String(id));saveModels(a)}
+ if(kind==='availability'){const D=pilot();D.availabilityRequests=D.availabilityRequests.filter(x=>String(x.id)!==String(id));localStorage.setItem('icc2_v30',JSON.stringify(D));window.__ICC_V30_STATE=D}
+ if(kind==='pole'){const L=lifecycle();L.poles.archived=L.poles.archived.filter(x=>String(x.name)!==String(id));L.poles.deleted=L.poles.deleted.filter(x=>String(x.name)!==String(id));delete appSettings.poleMeta?.[id]}
+ try{persist?.();saveSettings?.()}catch(e){}
+ if(await syncCloud('purge'))renderArchives91();
+}
+window.v91Restore=restore91;window.v91Purge=purge91;
+function renderArchives91(){
+ const page=document.getElementById('page-archives');if(!page)return;
+ let host=document.getElementById('v91-archives');if(!host){host=document.createElement('div');host.id='v91-archives';page.appendChild(host)}
+ [...page.children].forEach(c=>{if(c!==host)c.style.display='none'});host.style.display='';
+ const L=lifecycle(),D=pilot(),M=modelsArr();
+ const groups=[
+ ['Membres',members.filter(x=>x.archived||x.deleted).map(x=>({kind:'member',id:x.id,name:memberName(x),state:x.deleted?'Corbeille':'Archivé'}))],
+ ['Pôles',[...L.poles.archived.map(x=>({kind:'pole',id:x.name,name:x.name,state:'Archivé'})),...L.poles.deleted.map(x=>({kind:'pole',id:x.name,name:x.name,state:'Corbeille'}))]],
+ ['Modèles',M.filter(x=>x.archived||x.deleted).map(x=>({kind:'model',id:x.id,name:x.name||'Modèle',state:x.deleted?'Corbeille':'Archivé'}))],
+ ['Programmes',programs.filter(x=>x.archived||x.deleted).map(x=>({kind:'program',id:x.id,name:x.title||'Programme',state:x.deleted?'Corbeille':'Archivé'}))],
+ ['Sollicitations ponctuelles',solicitations.filter(x=>x.archived||x.deleted).map(x=>({kind:'solicitation',id:x.id,name:x.event||'Sollicitation',state:x.deleted?'Corbeille':'Archivé'}))],
+ ['Indisponibilités',D.availabilityRequests.filter(x=>x.archived||x.deleted).map(x=>({kind:'availability',id:x.id,name:(members.find(m=>String(m.id)===String(x.memberId))?memberName(members.find(m=>String(m.id)===String(x.memberId))):'Indisponibilité'),state:x.deleted?'Corbeille':'Archivé'}))]
+ ];
+ host.innerHTML=`<div class="mb-5"><h2 class="text-xl font-black text-iccViolet">Archives & corbeille</h2><p class="text-xs text-slate-500">Restaurer ou supprimer définitivement les éléments retirés.</p></div>`+groups.map(([title,arr])=>`<section class="mb-6"><h3 class="v91-section-title">${E(title)} (${arr.length})</h3><div class="grid md:grid-cols-2 gap-3">${arr.map(x=>`<div class="v91-item flex justify-between gap-3"><div><b>${E(x.name)}</b><p class="text-[10px] text-slate-500">${E(x.state)}</p></div><div class="v91-actions"><button class="v81-good" onclick="v91Restore('${x.kind}','${E(x.id)}')">Restaurer</button>${x.state==='Corbeille'?`<button class="v81-danger" onclick="v91Purge('${x.kind}','${E(x.id)}')">Supprimer définitivement</button>`:''}</div></div>`).join('')||'<p class="text-xs text-slate-400">Aucun élément.</p>'}</div></section>`).join('');
+}
+window.renderArchives91=renderArchives91;
+
+/* ---------- sort member lists globally ---------- */
+function sortMemberSelect(sel){
+ const val=sel.value,opts=[...sel.options],first=opts.filter(o=>!o.value),rest=opts.filter(o=>o.value).sort((a,b)=>alpha(a.textContent,b.textContent));sel.innerHTML='';[...first,...rest].forEach(o=>sel.appendChild(o));sel.value=val;
+}
+function sortMemberUI(root=document){
+ root.querySelectorAll('select').forEach(sel=>{const key=(sel.id+' '+sel.name).toLowerCase();if(/member|person|membre|replacement|responsable|referent|adjoint/.test(key))sortMemberSelect(sel)});
+ ['training-list','settings-members','members-grid'].forEach(id=>{const el=document.getElementById(id);if(el&&el.children.length>1){[...el.children].sort((a,b)=>alpha(a.textContent.trim(),b.textContent.trim())).forEach(c=>el.appendChild(c))}});
 }
 
-/* MutationObserver agressif mais uniquement sur les enfants directs de home. */
-let guard90=false;
-const obs90=new MutationObserver(()=>{
-  if(guard90)return;
-  guard90=true;
-  requestAnimationFrame(()=>{
-    ensureDashboard90();
-    guard90=false;
-  });
-});
-
-window.v90RefreshAll=function(){
-  ensureDashboard90();
-  updateBell90();
-  const p=document.getElementById('v90-pending-modal');
-  if(p&&!p.classList.contains('hidden'))v90OpenPending();
-};
-window.refresh90=window.v90RefreshAll;
-
-window.addEventListener('load',()=>setTimeout(()=>{
-  ensureDashboard90();
-  updateBell90();
-  const home=document.getElementById('page-home');
-  if(home)obs90.observe(home,{childList:true});
-},1900));
-
-const show90=window.showPage;
-window.showPage=function(id){
-  const r=show90?.apply(this,arguments);
-  setTimeout(()=>{
-    if(id==='home')ensureDashboard90();
-    updateBell90();
-  },100);
-  return r;
-};
-try{showPage=window.showPage}catch(e){}
-
-/* Si d'anciens timers touchent encore au dashboard, V90 gagne. */
-setInterval(()=>{ensureDashboard90();updateBell90()},5000);
-
-console.info('ICC V90 dashboard/cloche stable chargé');
+/* ---------- refresh ---------- */
+function refresh(){dashboard();bell();sortMemberUI();const p=document.getElementById('v91-pending');if(p&&!p.classList.contains('hidden'))v91OpenPending()}
+window.v91Refresh=refresh;
+const showOld=window.showPage;window.showPage=function(id){const r=showOld?.apply(this,arguments);setTimeout(()=>{if(id==='home')dashboard();if(id==='archives')renderArchives91();sortMemberUI();bell()},80);return r};try{showPage=window.showPage}catch(e){}
+window.addEventListener('load',()=>setTimeout(()=>{dashboard();bell();sortMemberUI()},1700));
+document.addEventListener('focusin',e=>{if(e.target?.closest?.('.modal'))setTimeout(()=>sortMemberUI(e.target.closest('.modal')),0)});
+console.info('ICC V91 consolidée chargée',V91);
 })();
 </script>
 
