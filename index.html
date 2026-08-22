@@ -7969,17 +7969,8 @@ setTimeout(()=>document.documentElement.classList.remove('icc-clean-boot'),3500)
 
 /* Safety: if a forgotten legacy routine tries to reorder the HOME menu later,
    restore the stable snapshot immediately. */
-const homeObserverClean=new MutationObserver(()=>{
-  if(activePageClean!=='home'||!homeSnapshotClean)return;
-  const grid=document.querySelector('#page-home > .grid');
-  if(grid&&grid.innerHTML!==homeSnapshotClean){
-    grid.innerHTML=homeSnapshotClean;
-  }
-});
-window.addEventListener('load',()=>setTimeout(()=>{
-  const grid=document.querySelector('#page-home > .grid');
-  if(grid)homeObserverClean.observe(grid,{childList:true,subtree:true});
-},2300));
+/* V95: legacy home snapshot observer removed */
+
 
 /* Focus refreshes only profile/header; no full state pull and no repaint. */
 window.addEventListener('focus',()=>setTimeout(async()=>{
@@ -8976,7 +8967,7 @@ async function strictSync83(reason='mutation',quiet=false){
     lastRevision83=String(data.revision??lastRevision83);
     try{localStorage.setItem('icc2_cloud_dirty_v72','0');localStorage.setItem('icc2_cloud_last_sync_v72',new Date().toISOString())}catch(e){}
     try{setCloudInfo('Synchronisé avec Supabase.',true)}catch(e){}
-    refresh83();
+    /* V95: legacy global repaint disabled after cloud pull */
     return true;
   }catch(e){
     console.error('V83 cloud sync',e);
@@ -9004,14 +8995,14 @@ async function pull83(){
     if(rev&&rev===lastRevision83)return;
     lastRevision83=rev;
     if(data.state&&typeof writeCanonicalMaster==='function')writeCanonicalMaster(data.state);
-    refresh83();
+    /* V95: legacy global repaint disabled after cloud pull */
     const visible=[...document.querySelectorAll('.page')].find(x=>!x.classList.contains('hidden'))?.id||'';
     if(visible==='page-programmes')try{renderFullPrograms?.()}catch(e){}
     if(visible==='page-sollicitations')try{renderSolicitations?.()}catch(e){}
     if(visible==='page-trombinoscope')try{renderMembers?.()}catch(e){}
   }catch(e){console.warn('V83 pull',e)}
 }
-setInterval(pull83,12000);
+window.__iccPullCloudV95=pull83;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(pull83,100)});
 
 /* ---------- PUSH : statut réel + test ---------- */
@@ -9148,7 +9139,7 @@ window.v83SaveSolicitation=async function(e){
   const ok=await strictSync83('solicitation');
   if(!ok){solicitations=solicitations.filter(x=>x!==s);try{persist?.()}catch(_){}return}
   try{if(typeof iccNotify80==='function')await iccNotify80('solicitation.created',{solicitation:s});else await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind:'solicitation.created',payload:{solicitation:s}}})}catch(err){console.warn('push solicitation',err)}
-  closeModal('solicitation-modal');try{renderSolicitations?.()}catch(e){}refresh83();alert('Sollicitation ponctuelle enregistrée et confirmée dans Supabase.');
+  closeModal('solicitation-modal');try{renderSolicitations?.()}catch(e){}/* V95: legacy global repaint disabled after cloud pull */alert('Sollicitation ponctuelle enregistrée et confirmée dans Supabase.');
 };
 try{saveSolicitation=window.v83SaveSolicitation}catch(e){}
 
@@ -9189,7 +9180,7 @@ window.v83CommitSolAnswer=async function(id,status){
   if(typeof persist==='function')persist();
   const ok=await strictSync83('solicitation-response');if(!ok)return;
   try{if(typeof iccNotify80==='function')await iccNotify80('solicitation.response',{solicitation:s,responderMemberId:mid83(),status})}catch(e){}
-  closeModal('v83-sol-answer');try{renderSolicitations?.();renderFullPrograms?.()}catch(e){}refresh83();
+  closeModal('v83-sol-answer');try{renderSolicitations?.();renderFullPrograms?.()}catch(e){}/* V95: legacy global repaint disabled after cloud pull */
 };
 window.renderSolicitations=function(){
   const el=document.getElementById('solicitation-list');if(!el)return;
@@ -9245,7 +9236,7 @@ window.refresh83=refresh83;
 window.addEventListener('load',()=>setTimeout(async()=>{
   document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final').forEach(x=>x.style.display='none');
   await ensurePush83(false);
-  refresh83();
+  /* V95: legacy global repaint disabled after cloud pull */
 },1700));
 const show83=window.showPage;
 window.showPage=function(id){const r=show83?.apply(this,arguments);setTimeout(()=>{if(id==='trombinoscope')renderMembers();if(id==='sollicitations')renderSolicitations();refresh83()},60);return r};
@@ -9716,10 +9707,10 @@ document.addEventListener('click',e=>{const b=e.target?.closest?.('button');if(!
 
 /* stabilisation */
 function stabilize(){ensureApply();cleanNature();styleCards();dashboard();bell()}
-const obs=new MutationObserver(()=>requestAnimationFrame(stabilize));
-window.addEventListener('load',()=>setTimeout(()=>{stabilize();const h=document.getElementById('page-home');if(h)obs.observe(h,{childList:true,subtree:true})},1700));
+/* V95: observer removed */
+window.addEventListener('load',()=>setTimeout(stabilize,900));
 const oldShow=window.showPage;window.showPage=function(id){const r=oldShow?.apply(this,arguments);setTimeout(()=>{stabilize();if(id==='trombinoscope'){ensureApply();renderMembers92()}},80);return r};try{showPage=window.showPage}catch(e){}
-setInterval(()=>{dashboard();bell();styleCards()},10000);
+/* V95: periodic dashboard rebuild removed */
 })();
 </script>
 
@@ -9885,12 +9876,93 @@ try{renderSettings=window.renderSettings}catch(e){}
 /* Synchronisation UI quand les données cloud arrivent ou changent */
 window.addEventListener('load',()=>setTimeout(()=>{refreshDashboard94();harmonizeSettings94()},1900));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>{refreshDashboard94();harmonizeSettings94()},100)});
-const obs94=new MutationObserver(()=>requestAnimationFrame(()=>{refreshDashboard94();harmonizeSettings94()}));
-window.addEventListener('load',()=>setTimeout(()=>{const d=document.getElementById('v91-dashboard');if(d)obs94.observe(d,{childList:true,subtree:true});const s=document.getElementById('settings-content');if(s)obs94.observe(s,{childList:true,subtree:true})},2100));
-setInterval(refreshDashboard94,5000);
+/* V95: observer removed */
+
+/* V95: 5-second dashboard polling removed */
 
 console.info('ICC V94 compteurs/paramètres chargée');
 })();
-</script>\n</body>
+</script>\n
+<style id="icc-v95-performance-css">
+html,body{scroll-behavior:auto!important}
+button,a,input,select,textarea{touch-action:manipulation}
+.page{animation:none!important;transition:none!important}
+.modal{animation:none!important;transition:none!important}
+#page-home,#page-settings,#page-sollicitations,#v91-dashboard,#icc-home-menu-final,#settings-content{
+  animation:none!important;transition:none!important;transform:none!important
+}
+.icc-v95-switching{pointer-events:none}
+</style>
+<script id="icc-v95-performance-final">
+(function(){
+'use strict';
+let raf95=0;
+function visiblePage95(){
+  return [...document.querySelectorAll('.page')].find(p=>!p.classList.contains('hidden'))?.id||'';
+}
+function lightRefresh95(){
+  if(raf95)return;
+  raf95=requestAnimationFrame(()=>{
+    raf95=0;
+    const page=visiblePage95();
+    try{
+      if(page==='page-home'){
+        if(typeof refreshDashboard94==='function')refreshDashboard94();
+        else {
+          const d=document.getElementById('v91-dashboard');
+          if(d){
+            /* V92/V94 already own the actual counts; do not rebuild the DOM here. */
+          }
+        }
+      }
+      if(page==='page-settings'&&typeof harmonizeSettings94==='function')harmonizeSettings94();
+      if(page==='page-trombinoscope'&&typeof ensureApply==='function')ensureApply();
+      if(typeof bell==='function')bell();
+    }catch(e){console.warn('V95 light refresh',e)}
+  });
+}
+window.iccLightRefresh95=lightRefresh95;
+
+/* Cloud stays fresh, but only on meaningful lifecycle events, never via UI polling. */
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)return;
+  setTimeout(async()=>{
+    try{
+      if(typeof window.__iccPullCloudV95==='function')await window.__iccPullCloudV95();
+    }catch(e){}
+    lightRefresh95();
+  },120);
+});
+
+/* One lightweight refresh after actual user mutations. */
+document.addEventListener('click',e=>{
+  const b=e.target?.closest?.('button');
+  if(!b)return;
+  if(/enregistrer|envoyer|confirmer|valider|archiver|supprimer|réactiver|inactiver/i.test(b.textContent||'')){
+    setTimeout(lightRefresh95,120);
+  }
+},true);
+
+/* Navigation: preserve existing routing but prevent delayed visual animation. */
+const prevShow95=window.showPage;
+window.showPage=function(id){
+  document.documentElement.classList.add('icc-v95-switching');
+  const r=prevShow95?.apply(this,arguments);
+  requestAnimationFrame(()=>{
+    document.documentElement.classList.remove('icc-v95-switching');
+    lightRefresh95();
+  });
+  return r;
+};
+try{showPage=window.showPage}catch(e){}
+
+/* Initial render once, not repeatedly. */
+window.addEventListener('load',()=>setTimeout(lightRefresh95,950));
+
+console.info('ICC V95 stabilité/performance chargée');
+})();
+</script>
+
+</body>
 </html>
 
