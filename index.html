@@ -8883,33 +8883,7 @@ console.info('ICC V81 chargé',V81);
 })();
 </script>
 
-<style id="v82css">
-.v82med{display:inline-flex;gap:3px;margin-left:6px}.v82m{width:15px;height:15px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:900}.v82gold{background:#d9a514}.v82blue{background:#4f7fd8}.v82bronze{background:#a96d38}.v82badge{background:#ef4444;color:white;border-radius:999px;padding:2px 6px;font-size:10px;font-weight:900}.v82card{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.v82cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.v82day{min-height:90px;border:1px solid #e2e8f0;border-radius:10px;padding:6px}.v82evt{display:block;background:#f3e8ff;color:#581c87;border-radius:6px;padding:4px;margin-top:4px;font-size:10px}@media(max-width:700px){.v82cal{grid-template-columns:1fr}}
-</style><script id="v82final">
-(function(){
-const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const ME=()=>{let id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null},MID=()=>String(ME()?.id||''),MN=m=>(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
-function medals(m){let a=[];if(String(appSettings?.responsableId||'')===String(m.id))a.push('<i class="v82m v82gold" title="Responsable">★</i>');if(String(appSettings?.adjointId||'')===String(m.id))a.push('<i class="v82m v82blue" title="Adjoint">★</i>');if(m.role==='referent'||(m.refPoles||[]).length)a.push('<i class="v82m v82bronze" title="Référent">★</i>');return a.length?'<span class="v82med">'+a.join('')+'</span>':''}
-function badges(){document.querySelectorAll('#members-grid article').forEach(c=>{let h=c.querySelector('h3');if(!h)return;h.querySelectorAll('.v82med,.v81-medals,.v9-medal').forEach(x=>x.remove());let t=h.textContent.trim().toLowerCase(),m=(members||[]).find(x=>t===MN(x).toLowerCase()||t.startsWith(MN(x).toLowerCase()));if(m)h.insertAdjacentHTML('beforeend',medals(m))})}
-function assigned(p,id){if(p?.archived||p?.deleted)return false;if((p.memberIds||[]).map(String).includes(id))return true;return Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(id))}
-function solconc(s,id){if(s?.archived||s?.deleted)return false;if([s.memberId,s.targetMemberId].map(String).includes(id)||(s.memberIds||[]).map(String).includes(id)||(s.targetMemberIds||[]).map(String).includes(id))return true;let mp=ME()?.poles||[];return (s.poles||s.targetPoles||[]).some?.(p=>mp.includes(p))||false}
-function items(){let id=MID(),a=[];(programs||[]).forEach(p=>{if(assigned(p,id))a.push({k:'programme',id:p.id,t:p.title||'Programme',s:p.start||p.date||'',e:p.end||'',l:p.location||'',st:(p.responses||{})[id]?.status||'pending'})});(solicitations||[]).forEach(s=>{if(solconc(s,id))a.push({k:'sollicitation',id:s.id,t:s.event||s.title||'Sollicitation ponctuelle',s:s.start||s.date||'',e:s.end||'',l:s.location||'',st:(s.responses||{})[id]?.status||s.status||'pending'})});return a.sort((x,y)=>String(x.s).localeCompare(String(y.s)))}
-function pending(){return items().filter(x=>!['accepted','approved','refused','declined','partial'].includes(String(x.st).toLowerCase()))}
-function alerts(){let n=pending().length;let bell=[...document.querySelectorAll('button,a')].find(x=>(x.textContent||'').includes('🔔'));if(bell){let b=bell.querySelector('.v82badge');if(!b){b=document.createElement('span');b.className='v82badge';bell.appendChild(b)}b.textContent=n;b.style.display=n?'inline':'none';bell.onclick=e=>{e.preventDefault();inbox()}}document.querySelectorAll('.stat-card,.dashboard-card,[class*="stat"]').forEach(c=>{let t=(c.textContent||'').toLowerCase();if(t.includes('sollicitation')&&t.length<200){let num=c.querySelector('.text-3xl,.text-2xl,strong,b');if(num)num.textContent=n;[...c.querySelectorAll('p,span,small,h3,h4')].forEach(x=>{if((x.textContent||'').toLowerCase().includes('sollicitation'))x.textContent='En attente'});c.onclick=inbox;c.style.cursor='pointer'}})}
-function inbox(){let m=document.getElementById('v82inbox');if(!m){m=document.createElement('div');m.id='v82inbox';m.className='modal hidden fixed inset-0 z-[170] flex items-center justify-center p-4';document.body.appendChild(m)}m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Mes éléments</h3><p class="text-xs">${pending().length} en attente — programmes + sollicitations ponctuelles</p></div><button onclick="closeModal('v82inbox')">✕</button></div><div class="p-4 space-y-2">${items().map(x=>`<div class="v82card"><b>${E(x.t)}</b><p class="text-xs">${x.k==='programme'?'Programme affecté':'Sollicitation ponctuelle'} · ${E(String(x.s).replace('T',' '))} ${x.l?'· '+E(x.l):''}</p></div>`).join('')||'Aucun élément.'}</div></div>`;openModal('v82inbox')}
-function rename(){document.querySelectorAll('a,button,h1,h2,h3,.nav-label').forEach(x=>{if(x.textContent.trim()==='Sollicitations')x.textContent='Sollicitations ponctuelles'})}
-function planBtn(){let h=document.getElementById('page-home')||document.getElementById('page-accueil');if(!h||document.getElementById('v82planbtn'))return;let b=document.createElement('button');b.id='v82planbtn';b.className='v81-primary';b.style.margin='12px';b.textContent='📅 Mon planning';b.onclick=planning;(h.querySelector('#dashboard,.dashboard,[id*="dashboard"]')||h).appendChild(b)}
-function planning(){let m=document.getElementById('v82plan');if(!m){m=document.createElement('div');m.id='v82plan';m.className='modal hidden fixed inset-0 z-[175] flex items-center justify-center p-3';document.body.appendChild(m)}let d=new Date(),f=new Date(d.getFullYear(),d.getMonth(),1),t=new Date(d.getFullYear(),d.getMonth()+1,0),iso=x=>x.toISOString().slice(0,10);m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Mon planning — ${E(MN(ME()))}</h3><p class="text-xs">Uniquement ce qui te concerne.</p></div><button onclick="closeModal('v82plan')">✕</button></div><div class="p-4"><div class="grid sm:grid-cols-4 gap-2"><label class="text-xs">Début<input id="v82from" type="date" class="field" value="${iso(f)}"></label><label class="text-xs">Fin<input id="v82to" type="date" class="field" value="${iso(t)}"></label><button class="v81-primary self-end" onclick="v82render()">Afficher</button><div class="flex gap-2 self-end"><button class="v81-warn" onclick="window.print()">PDF</button><button class="v81-good" onclick="v82csv()">Excel</button></div></div><div id="v82cal" class="mt-4"></div></div></div>`;openModal('v82plan');v82render()}
-window.v82render=()=>{let f=document.getElementById('v82from').value,t=document.getElementById('v82to').value,a=items().filter(x=>String(x.s).slice(0,10)>=f&&String(x.s).slice(0,10)<=t),h=document.getElementById('v82cal'),s=new Date(f+'T00:00'),e=new Date(t+'T00:00'),days=[];for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){let k=d.toISOString().slice(0,10),ev=a.filter(x=>String(x.s).slice(0,10)===k);days.push(`<div class="v82day"><b>${d.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'2-digit'})}</b>${ev.map(x=>`<span class="v82evt">${E(x.t)}<br>${E(String(x.s).slice(11,16))}</span>`).join('')}</div>`)}h.innerHTML='<div class="v82cal">'+days.join('')+'</div>'}
-window.v82csv=()=>{let f=document.getElementById('v82from').value,t=document.getElementById('v82to').value,a=items().filter(x=>String(x.s).slice(0,10)>=f&&String(x.s).slice(0,10)<=t),r=[['Type','Titre','Début','Fin','Lieu','Statut'],...a.map(x=>[x.k,x.t,x.s,x.e,x.l,x.st])],csv=r.map(y=>y.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n'),b=new Blob(['\ufeff'+csv],{type:'text/csv'}),q=document.createElement('a');q.href=URL.createObjectURL(b);q.download=`mon_planning_${f}_${t}.csv`;q.click()}
-function wire(){let form=document.querySelector('#solicitation-modal form');if(!form||form.dataset.v82)return;form.dataset.v82='1';let btn=[...form.querySelectorAll('button')].find(b=>/envoyer|enregistrer/i.test(b.textContent));if(btn){btn.type='submit';btn.disabled=false}form.addEventListener('submit',()=>setTimeout(()=>{try{persist?.();scheduleCloudPush?.();renderSolicitations?.()}catch(e){}alerts()},200))}
-function active(){let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')}catch(e){}let q=D.availabilityRequests||[],n=Date.now();return (members||[]).filter(m=>!m.archived&&!m.deleted&&m.status!=='inactive'&&!q.some(r=>String(r.memberId)===String(m.id)&&['approved','partial'].includes(r.status)&&!r.archived&&!r.deleted&&Date.parse(r.start)<=n&&Date.parse(r.end)>=n)).length}
-function stats(){document.querySelectorAll('.stat-card,.dashboard-card,[class*="stat"]').forEach(c=>{let t=(c.textContent||'').toLowerCase(),n=c.querySelector('.text-3xl,.text-2xl,strong,b');if(n&&t.includes('membre')&&t.includes('actif'))n.textContent=active()})}
-function refresh(){badges();rename();planBtn();wire();alerts();stats()}
-let oldRM=window.renderMembers;window.renderMembers=function(){let r=oldRM?.apply(this,arguments);setTimeout(badges,20);return r};let oldSP=window.showPage;window.showPage=function(){let r=oldSP?.apply(this,arguments);setTimeout(refresh,50);return r};try{showPage=window.showPage}catch(e){}
-addEventListener('load',()=>{setTimeout(refresh,1000);setInterval(alerts,5000)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
-})();
-</script>
+
 
 <style id="icc-v83-final-css">
 .v83-medals{display:inline-flex;gap:3px;margin-left:5px;vertical-align:middle;align-items:center}
@@ -9277,6 +9251,200 @@ const show83=window.showPage;
 window.showPage=function(id){const r=show83?.apply(this,arguments);setTimeout(()=>{if(id==='trombinoscope')renderMembers();if(id==='sollicitations')renderSolicitations();refresh83()},60);return r};
 try{showPage=window.showPage}catch(e){}
 console.info('ICC V83 chargé',V83);
+})();
+</script>
+
+
+<style id="icc-v84-final-css">
+#v84-dashboard{margin-top:24px}
+.v84-dash-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.v84-dash-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:14px}
+@media(min-width:640px){.v84-dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1024px){.v84-dash-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.v84-dash-card{border:1px solid #e2e8f0;border-radius:18px;padding:16px;text-align:left;background:#fff}
+.v84-dash-card b{display:block;font-size:24px;color:#4c1d95;margin-top:4px}
+.v84-btn{background:#4c1d95;color:#fff;border-radius:11px;padding:9px 13px;font-size:11px;font-weight:900}
+.v84-item{border:1px solid #e2e8f0;border-radius:15px;padding:13px;background:#fff}
+.v84-unread{border-left:4px solid #7c3aed;background:#faf7ff}
+.v84-read{opacity:.78}
+.v84-tag{display:inline-flex;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:900;background:#f1f5f9;color:#475569}
+.v84-note{margin-top:7px;border-radius:8px;padding:6px 8px;font-size:10px;background:#fff7ed;color:#9a3412}
+</style>
+<script id="icc-v84-final-controller">
+(function(){
+'use strict';
+const V84='2026-08-22-v84';
+const E84=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const me84=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
+const mid84=()=>String(me84()?.id||'');
+const n84=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
+const poles84=()=>new Set([...(me84()?.poles||[]),...(me84()?.refPoles||[])].map(String));
+function progConcern84(p){
+ if(!p||p.archived||p.deleted||!mid84())return false;
+ if(p.allCommunication===true||p.audience==='com'||p.scope==='com'||p.targetType==='com')return true;
+ if((p.memberIds||[]).map(String).includes(mid84()))return true;
+ if(Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(mid84())))return true;
+ const ps=poles84();return (p.poles||[]).some(x=>ps.has(String(x)));
+}
+function solConcern84(s){
+ if(!s||s.archived||s.deleted||!me84())return false;
+ if(String(s.fromMemberId||'')===mid84())return true;
+ if((s.memberIds||[]).map(String).includes(mid84())||(s.targetMemberIds||[]).map(String).includes(mid84()))return true;
+ let ts=Array.isArray(s.targets)?s.targets:[];if(!ts.length&&s.targetType)ts=[{type:s.targetType,value:s.target}];
+ const ps=poles84();return ts.some(t=>t?.type==='com'||(t?.type==='person'&&String(t.value)===mid84())||(t?.type==='pole'&&ps.has(String(t.value))))||s.targetType==='com'||String(s.target||'').toLowerCase()==='toute la communication';
+}
+function pResp84(p){let id=mid84(),r=p?.memberResponses80?.[id];if(r)return r;for(const a of Object.values(p?.assignments||{})){if(a?.responses?.[id])return {status:a.responses[id]}}return null}
+function sResp84(s){return s?.responses?.[mid84()]||null}
+function status84(x){const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);return r?.status||x.raw?.status||'pending'}
+function finalStatus84(v){return ['accepted','confirmed','approved','partial','refused','declined','cancelled'].includes(String(v||'').toLowerCase())}
+function items84(){
+ const a=[];(programs||[]).filter(progConcern84).forEach(p=>a.push({k:'p',id:String(p.id),title:p.title||'Programme',date:p.start||p.date||'',end:p.end||'',location:p.location||'',raw:p}));
+ (solicitations||[]).filter(solConcern84).forEach(s=>a.push({k:'s',id:String(s.id),title:s.event||s.title||'Sollicitation ponctuelle',date:s.date||s.start||'',end:s.end||'',location:s.location||'',raw:s}));
+ return a.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+}
+function readKey84(){return 'icc_v84_seen_'+mid84()}
+function seen84(){try{return new Set(JSON.parse(localStorage.getItem(readKey84())||'[]').map(String))}catch(e){return new Set()}}
+function itemKey84(x){return x.k+':'+x.id}
+function markSeen84(x){const s=seen84();s.add(itemKey84(x));localStorage.setItem(readKey84(),JSON.stringify([...s]));updateBell84();dashboard84()}
+function unread84(){const s=seen84();return items84().filter(x=>!s.has(itemKey84(x)))}
+function pending84(){return items84().filter(x=>!finalStatus84(status84(x)))}
+
+/* FIX SYNCHRO : une synchro en cours est attendue, jamais transformée en faux échec. */
+let syncPromise84=null,syncTimer84=null;
+async function doSync84(reason='mutation',quiet=false){
+ if(syncPromise84)return await syncPromise84;
+ syncPromise84=(async()=>{
+  try{
+   if(!cloudClient)throw new Error('Supabase non initialisé');
+   const ses=(await cloudClient.auth.getSession()).data.session;if(!ses)throw new Error('Session Supabase inactive');
+   let state;
+   if(typeof payload83==='function')state=payload83();else{
+    let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
+    state={settings:appSettings,poles,members,programs,solicitations,pilotage:D,updatedAt:new Date().toISOString()};
+   }
+   const {data,error}=await cloudClient.functions.invoke('send-push',{body:{action:'state-sync',state}});
+   if(error)throw new Error(error.message||String(error));
+   if(data?.success===false)throw new Error(data.error||'Supabase a refusé la sauvegarde');
+   /* Certaines versions Edge renvoient un objet 2xx valide sans success explicite : 2xx + state/revision = confirmé. */
+   if(!data || (data.success!==true && data.state===undefined && data.revision===undefined))throw new Error('Réponse Supabase non reconnue');
+   if(data.state&&typeof writeCanonicalMaster==='function')writeCanonicalMaster(data.state);
+   try{localStorage.setItem('icc2_cloud_dirty_v72','0');localStorage.setItem('icc2_cloud_last_sync_v72',new Date().toISOString())}catch(e){}
+   try{setCloudInfo('Synchronisé avec Supabase.',true)}catch(e){}
+   return true;
+  }catch(e){
+   console.error('V84 sync',e);
+   try{setCloudInfo('Synchronisation Supabase impossible — modification non confirmée.',false)}catch(_){}
+   if(!quiet)alert('Supabase n’a pas confirmé la modification : '+(e?.message||e));
+   return false;
+  }finally{syncPromise84=null}
+ })();
+ return await syncPromise84;
+}
+window.iccStrictSync83=doSync84;window.cloudPush=doSync84;
+window.scheduleCloudPush=function(){clearTimeout(syncTimer84);syncTimer84=setTimeout(()=>doSync84('auto',true),450)};
+window.scheduleSyncMaster=window.scheduleCloudPush;
+try{cloudPush=window.cloudPush;scheduleCloudPush=window.scheduleCloudPush;scheduleSyncMaster=window.scheduleSyncMaster}catch(e){}
+
+/* UNE SEULE TABLEAU DE BORD */
+function dashboard84(){
+ const home=document.getElementById('page-home');if(!home)return;
+ document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.style.display='none');
+ let b=document.getElementById('v84-dashboard');if(!b){b=document.createElement('section');b.id='v84-dashboard';b.className='bg-white border rounded-3xl p-5';home.appendChild(b)}
+ const pend=pending84(),train=(typeof trainingMine83==='function'?trainingMine83():[]),active=(typeof activeNow83==='function'?activeNow83():(members||[]).filter(m=>m.status==='active'&&!m.archived&&!m.deleted));
+ b.innerHTML=`<div class="v84-dash-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v84-btn" onclick="v84OpenPlanning()">📅 Mon planning</button></div><div class="v84-dash-grid"><button class="v84-dash-card" onclick="v84OpenInbox()"><span>🔔</span><b>${pend.length}</b><small>Sollicitations et programmes en attente</small></button><button class="v84-dash-card" onclick="v84OpenServices()"><span>✅</span><b>${items84().filter(x=>finalStatus84(status84(x))).length}</b><small>Mes services</small></button><button class="v84-dash-card" onclick="showPage('formations')"><span>🎓</span><b>${train.length}</b><small>Membres en formation</small></button><button class="v84-dash-card" onclick="v83ShowActive?.()"><span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small></button></div>`;
+}
+
+/* CLOCHE : non lus en haut, déjà vus en bas */
+function updateBell84(){
+ const n=unread84().length,b=document.getElementById('notif-badge');if(b){b.textContent=String(n);b.style.display=n?'inline-flex':'none'}
+}
+window.renderNotifications=function(){
+ const list=document.getElementById('notification-list');if(!list)return;
+ const seen=seen84(),all=items84(),un=all.filter(x=>!seen.has(itemKey84(x))),rd=all.filter(x=>seen.has(itemKey84(x)));
+ const card=x=>{const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw);return `<button class="v84-item ${seen.has(itemKey84(x))?'v84-read':'v84-unread'} w-full text-left mb-2" onclick="v84OpenItem('${x.k}','${E84(x.id)}')"><span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION PONCTUELLE'}</span><b class="block mt-1">${E84(x.title)}</b><p class="text-[10px] text-slate-500">${E84(String(x.date).replace('T',' '))}${x.location?' · '+E84(x.location):''}</p>${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E84(r.reserve)}</div>`:''}${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E84(r.reason)}</div>`:''}</button>`};
+ list.innerHTML=`<h4 class="text-xs font-black text-iccViolet mb-2">Nouveaux (${un.length})</h4>${un.map(card).join('')||'<p class="text-xs text-slate-400 mb-3">Aucun nouvel élément.</p>'}<h4 class="text-xs font-black text-slate-500 mt-4 mb-2">Programmes et sollicitations vus</h4>${rd.map(card).join('')||'<p class="text-xs text-slate-400">Aucun élément vu.</p>'}`;
+ updateBell84();
+};
+window.v84OpenInbox=function(){const p=document.getElementById('notification-panel');if(p)p.classList.remove('hidden');renderNotifications()};
+
+/* DÉTAILS CLIQUABLES */
+function openDetail84(x){
+ let m=document.getElementById('v84-detail');if(!m){m=document.createElement('div');m.id='v84-detail';m.className='modal hidden fixed inset-0 z-[220] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const r=x.k==='p'?pResp84(x.raw):sResp84(x.raw),raw=x.raw;
+ let details=x.k==='p'
+ ?`<p><b>Horaire :</b> ${E84(raw.startTime||'—')} → ${E84(raw.endTime||'—')}</p><p><b>Lieu :</b> ${E84(raw.location||'—')}</p><p><b>Pôles :</b> ${E84((raw.poles||[]).join(', ')||'Toute la Com / affectation directe')}</p><p><b>Description :</b> ${E84(raw.desc||raw.generalNote||'—')}</p>`
+ :`<p><b>De :</b> ${E84(raw.from||'—')}</p><p><b>À :</b> ${E84(raw.target||'—')}</p><p><b>Message :</b> ${E84(raw.message||'—')}</p><p><b>Programme lié :</b> ${E84((programs||[]).find(p=>String(p.id)===String(raw.programId))?.title||'—')}</p>`;
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><div><span class="text-xs">${x.k==='p'?'Programme':'Sollicitation ponctuelle'}</span><h3 class="font-black">${E84(x.title)}</h3></div><button onclick="closeModal('v84-detail')">✕</button></div><div class="p-5 text-sm space-y-2"><p><b>Date :</b> ${E84(String(x.date).replace('T',' '))}</p>${details}${r?.reserve?`<div class="v84-note"><b>Réserve :</b> ${E84(r.reserve)}</div>`:''}${r?.reason?`<div class="v84-note"><b>Motif :</b> ${E84(r.reason)}</div>`:''}<div class="mt-4"><button class="v84-btn" onclick="closeModal('v84-detail');showPage('${x.k==='p'?'programmes':'sollicitations'}')">Ouvrir dans ${x.k==='p'?'Programmes':'Sollicitations ponctuelles'}</button></div></div></div>`;
+ openModal('v84-detail');
+}
+window.v84OpenItem=function(k,id){const x=items84().find(y=>y.k===k&&String(y.id)===String(id));if(!x)return;markSeen84(x);renderNotifications();openDetail84(x)};
+
+/* MES SERVICES : effectué / accepté / refusé, avec archive personnelle */
+function servicesArchive84(){try{return new Set(JSON.parse(localStorage.getItem('icc_v84_services_archive_'+mid84())||'[]'))}catch(e){return new Set()}}
+function saveServicesArchive84(s){localStorage.setItem('icc_v84_services_archive_'+mid84(),JSON.stringify([...s]))}
+window.v84OpenServices=function(){
+ let m=document.getElementById('v84-services');if(!m){m=document.createElement('div');m.id='v84-services';m.className='modal hidden fixed inset-0 z-[221] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const ar=servicesArchive84(),done=items84().filter(x=>finalStatus84(status84(x))&&!ar.has(itemKey84(x))),arch=items84().filter(x=>ar.has(itemKey84(x)));
+ const card=(x,a=false)=>`<div class="v84-item"><div class="flex justify-between gap-2"><div><span class="v84-tag">${x.k==='p'?'PROGRAMME':'SOLLICITATION'}</span><b class="block">${E84(x.title)}</b><p class="text-xs text-slate-500">${E84(x.date)} · ${E84(status84(x))}</p></div><div class="flex gap-1"><button class="v84-btn" onclick="v84OpenItem('${x.k}','${E84(x.id)}')">Voir</button>${a?`<button class="v81-good" onclick="v84RestoreService('${itemKey84(x)}')">Restaurer</button>`:`<button class="v81-warn" onclick="v84ArchiveService('${itemKey84(x)}')">Archiver</button>`}</div></div></div>`;
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-auto"><div class="bg-iccViolet text-white p-4 flex justify-between sticky top-0"><div><h3 class="font-black">Mes services</h3><p class="text-xs">Tout ce que tu as accepté, effectué, accepté partiellement ou refusé.</p></div><button onclick="closeModal('v84-services')">✕</button></div><div class="p-4"><h4 class="font-black mb-2">Historique personnel</h4><div class="space-y-2">${done.map(x=>card(x)).join('')||'<p class="text-xs text-slate-400">Aucun service terminé.</p>'}</div><h4 class="font-black mt-6 mb-2">Archives personnelles</h4><div class="space-y-2">${arch.map(x=>card(x,true)).join('')||'<p class="text-xs text-slate-400">Aucune archive.</p>'}</div></div></div>`;
+ openModal('v84-services');
+};
+window.v84ArchiveService=function(key){const s=servicesArchive84();s.add(key);saveServicesArchive84(s);v84OpenServices()};
+window.v84RestoreService=function(key){const s=servicesArchive84();s.delete(key);saveServicesArchive84(s);v84OpenServices()};
+
+/* MON PLANNING : réutilise le planning V83 */
+window.v84OpenPlanning=function(){if(typeof v83OpenPlanning==='function')v83OpenPlanning();else if(typeof openMyPlanning82==='function')openMyPlanning82()};
+
+/* TOUTE LA COM dans l'affectation Programme */
+function ensureAllCom84(){
+ const modal=document.getElementById('program-modal');if(!modal||document.getElementById('v84-allcom'))return;
+ const anchor=document.getElementById('prog-poles')?.closest('div');
+ if(!anchor)return;
+ const box=document.createElement('label');box.id='v84-allcom';box.className='flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl p-3 mt-3 text-xs font-black text-iccViolet';
+ box.innerHTML='<input id="prog-all-com" type="checkbox"> Toute la Communication — affecter tous les membres actifs';
+ anchor.insertAdjacentElement('beforebegin',box);
+ const id=document.getElementById('prog-id')?.value,p=(programs||[]).find(x=>String(x.id)===String(id));document.getElementById('prog-all-com').checked=!!p?.allCommunication;
+}
+const oldOpenP84=window.openProgram;window.openProgram=function(){const r=oldOpenP84?.apply(this,arguments);setTimeout(ensureAllCom84,0);return r};
+const oldCollect84=window.collectAssignments;window.collectAssignments=function(){
+ const result=oldCollect84?.apply(this,arguments)||{};
+ if(document.getElementById('prog-all-com')?.checked){
+   const ids=(members||[]).filter(m=>!m.archived&&!m.deleted&&!m.deletedAt&&m.status!=='inactive').map(m=>m.id);
+   result['Toute la Communication']={memberIds:ids,onCall:[],tasks:'Affectation à toute la Communication',responses:{}};
+ }
+ return result;
+};
+/* Après sauvegarde programme, mémoriser le flag et notifier */
+const oldSaveP84=window.saveProgram;window.saveProgram=async function(e){
+ const idBefore=document.getElementById('prog-id')?.value||'',all=!!document.getElementById('prog-all-com')?.checked;
+ const beforeIds=new Set((programs||[]).map(p=>String(p.id)));
+ const r=await oldSaveP84?.apply(this,arguments);
+ setTimeout(async()=>{
+   let p=idBefore?(programs||[]).find(x=>String(x.id)===String(idBefore)): [...(programs||[])].reverse().find(x=>!beforeIds.has(String(x.id)));
+   if(p){p.allCommunication=all;p.updatedAt=new Date().toISOString();try{persist?.()}catch(e){}await doSync84('program',true);try{await cloudClient.functions.invoke('send-push',{body:{action:'notify-event',kind:beforeIds.has(String(p.id))?'program.updated':'program.created',payload:{program:p}}})}catch(e){}}
+   refresh84();
+ },100);
+ return r;
+};
+try{saveProgram=window.saveProgram}catch(e){}
+
+/* BOUTON ENVOYER SOLLICITATION : clic DIRECT, aucun submit ancien */
+function wireSolicitation84(){
+ const form=document.querySelector('#solicitation-modal form');if(!form)return;
+ const btn=[...form.querySelectorAll('button')].find(b=>/envoyer/i.test(b.textContent||''));if(!btn)return;
+ btn.type='button';btn.disabled=false;
+ btn.onclick=async ev=>{ev.preventDefault();ev.stopImmediatePropagation();if(typeof v83SaveSolicitation==='function')await v83SaveSolicitation({preventDefault(){},stopImmediatePropagation(){}});else alert('Fonction de sollicitation indisponible.');};
+ form.onsubmit=e=>{e.preventDefault();btn.click()};
+}
+const oldOpenS84=window.openSolicitation;window.openSolicitation=function(){const r=oldOpenS84?.apply(this,arguments);setTimeout(wireSolicitation84,30);return r};
+
+/* refresh */
+function refresh84(){dashboard84();updateBell84();const panel=document.getElementById('notification-panel');if(panel&&!panel.classList.contains('hidden'))renderNotifications()}
+window.refresh84=refresh84;
+addEventListener('load',()=>setTimeout(()=>{document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard').forEach(x=>x.style.display='none');dashboard84();updateBell84();wireSolicitation84()},1800));
+const oldShow84=window.showPage;window.showPage=function(id){const r=oldShow84?.apply(this,arguments);setTimeout(()=>{if(id==='home')dashboard84();if(id==='sollicitations')wireSolicitation84();refresh84()},70);return r};try{showPage=window.showPage}catch(e){}
+setInterval(()=>{updateBell84();dashboard84()},7000);
+console.info('ICC V84 chargé',V84);
 })();
 </script>
 
