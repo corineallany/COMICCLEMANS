@@ -9680,7 +9680,7 @@ async function sync92(reason='mutation',quiet=false){
 window.v91Sync=sync92;window.cloudPush=sync92;window.scheduleCloudPush=function(){clearTimeout(window.__v92t);window.__v92t=setTimeout(()=>sync92('auto',true),500)};
 
 /* sources stables */
-function rel(){try{return typeof relevant==='function'?relevant():[]}catch(e){return[]}}
+function rel(){try{return typeof window.v94Relevant==='function'?window.v94Relevant():[]}catch(e){return[]}}
 function st(x){try{return typeof itemStatus==='function'?itemStatus(x):(x.raw?.status||'pending')}catch(e){return x.raw?.status||'pending'}}
 function fin(x){return ['accepted','confirmed','approved','partial','refused','declined','cancelled','completed'].includes(N(st(x)))}
 function pend(){return rel().filter(x=>!fin(x))}
@@ -9696,8 +9696,8 @@ function dashboard(){
  const home=document.getElementById('page-home');if(!home)return;
  document.querySelectorAll('#v49-dashboard,#icc-home-dashboard-final,#v83-dashboard,#v84-dashboard').forEach(x=>x.remove());
  let d=document.getElementById('v91-dashboard');if(!d){d=document.createElement('section');d.id='v91-dashboard';d.className='mt-6 bg-white border rounded-3xl p-5';home.appendChild(d)}
- const train=typeof trainingMine==='function'?trainingMine():[],active=typeof activeMembers==='function'?activeMembers():[];
- d.innerHTML=`<div class="v91-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v91-btn" onclick="v83OpenPlanning?.()">📅 Mon planning</button></div><div class="v91-grid"><button class="v91-card" onclick="v92OpenPending()"><span>🔔</span><b>${pend().length}</b><small>Sollicitations et programmes en attente</small></button><button class="v91-card" onclick="v91OpenServices()"><span>✅</span><b>${done().length}</b><small>Mes services</small></button><button class="v91-card" onclick="showPage('formations')"><span>🎓</span><b>${train.length}</b><small>Membres en formation</small></button><button class="v91-card" onclick="v91ShowActive()"><span>👥</span><b>${active.length}</b><small>Membres actifs maintenant</small></button></div>`;
+ const trainCount=typeof window.v94TrainingCount==='function'?window.v94TrainingCount():0,activeCount=typeof window.v94ActiveMembers==='function'?window.v94ActiveMembers().length:0;
+ d.innerHTML=`<div class="v91-head"><div><h2 class="font-black text-iccViolet">Tableau de bord</h2><p class="text-xs text-slate-500">Tes informations et services personnels.</p></div><button class="v91-btn" onclick="v83OpenPlanning?.()">📅 Mon planning</button></div><div class="v91-grid"><button class="v91-card" onclick="v92OpenPending()"><span>🔔</span><b>${pend().length}</b><small>Sollicitations et programmes en attente</small></button><button class="v91-card" onclick="v91OpenServices()"><span>✅</span><b>${done().length}</b><small>Mes services</small></button><button class="v91-card" onclick="showPage('formations')"><span>🎓</span><b>${trainCount}</b><small>Membres en formation</small></button><button class="v91-card" onclick="v91ShowActive()"><span>👥</span><b>${activeCount}</b><small>Membres actifs maintenant</small></button></div>`;
 }
 
 /* mes demandes */
@@ -9724,204 +9724,173 @@ setInterval(()=>{dashboard();bell();styleCards()},10000);
 </script>
 
 
-<style id="icc-v93-css">
-.v93-member-lifecycle{margin-top:14px;padding:13px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}
-.v93-member-lifecycle h4{font-size:11px;font-weight:900;color:#4c1d95;margin-bottom:8px}
-.v93-member-lifecycle .actions{display:flex;gap:8px;flex-wrap:wrap}
-.v93-archive{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:10px;padding:8px 11px;font-size:10px;font-weight:900}
-.v93-delete{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:10px;padding:8px 11px;font-size:10px;font-weight:900}
-</style>
 
-<script id="icc-v93-controller">
+
+
+
+\n<style id="icc-v94-css">
+/* Harmonisation visuelle Paramètres */
+#settings-content .v94-full-settings-card{grid-column:1/-1!important;width:100%!important;max-width:none!important}
+/* Aucun ancien bloc lifecycle V93 */
+#v93-member-lifecycle{display:none!important}
+</style>
+<script id="icc-v94-final">
 (function(){
 'use strict';
-const E93=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const N93=v=>String(v||'').trim().toLowerCase();
-const me93=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
-const myId93=()=>String(me93()?.id||'');
-const name93=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
-const alpha93=(a,b)=>String(a).localeCompare(String(b),'fr',{sensitivity:'base'});
+const E94=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const N94=v=>String(v||'').trim().toLowerCase();
+const me94=()=>{const id=localStorage.getItem('icc2_member_id')||'';return (members||[]).find(m=>String(m.id)===String(id))||null};
+const myId94=()=>String(me94()?.id||'');
+const name94=m=>String(((m?.firstName||'')+' '+(m?.lastName||'')).trim()||m?.name||'Membre');
+const alpha94=(a,b)=>String(a).localeCompare(String(b),'fr',{sensitivity:'base'});
+function admin94(){try{return typeof iccTechAdminRoot==='function'&&iccTechAdminRoot()}catch(e){return false}}
+function direction94(){const id=myId94();return admin94()||String(appSettings?.responsableId||'')===id||String(appSettings?.adjointId||'')===id}
+function refs94(){return new Set(me94()?.refPoles||[])}
+function myPoles94(){return new Set([...(me94()?.poles||[]),...(me94()?.refPoles||[])].map(String))}
 
-function admin93(){try{return typeof iccTechAdminRoot==='function'&&iccTechAdminRoot()}catch(e){return false}}
-function direction93(){const id=myId93();return admin93()||String(appSettings?.responsableId||'')===id||String(appSettings?.adjointId||'')===id}
-function refPoles93(){return new Set(me93()?.refPoles||[])}
-
-/* =========================================================
-   COMPTEURS — CALCUL DIRECT, AUCUNE DÉPENDANCE V91
-   ========================================================= */
-function myPoles93(){return new Set([...(me93()?.poles||[]),...(me93()?.refPoles||[])].map(String))}
-function programConcern93(p){
- if(!p||p.archived||p.deleted||!myId93())return false;
+/* ===============================================
+   SOURCE DE VÉRITÉ DU TABLEAU DE BORD
+   =============================================== */
+function programConcern94(p){
+ if(!p||p.archived||p.deleted||!myId94())return false;
  if(p.allCommunication===true||p.audience==='com'||p.scope==='com'||p.targetType==='com')return true;
- if((p.memberIds||[]).map(String).includes(myId93()))return true;
- if(Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(myId93())))return true;
- const ps=myPoles93();return (p.poles||[]).some(x=>ps.has(String(x)));
+ if((p.memberIds||[]).map(String).includes(myId94()))return true;
+ if(Object.values(p.assignments||{}).some(a=>(a?.memberIds||[]).map(String).includes(myId94())))return true;
+ const ps=myPoles94();return (p.poles||[]).some(x=>ps.has(String(x)));
 }
-function solTargets93(s){
- let t=Array.isArray(s?.targets)?s.targets:[];
- if(!t.length&&s?.targetType)t=[{type:s.targetType,value:s.target}];
- return t;
+function solTargets94(s){let t=Array.isArray(s?.targets)?s.targets:[];if(!t.length&&s?.targetType)t=[{type:s.targetType,value:s.target}];return t}
+function solicitationConcern94(s){
+ if(!s||s.archived||s.deleted||!me94())return false;
+ if(String(s.fromMemberId||s.createdByMemberId||'')===myId94())return true;
+ if((s.targetMemberIds||[]).map(String).includes(myId94()))return true;
+ const ps=myPoles94();
+ return solTargets94(s).some(t=>t?.type==='com'||(t?.type==='person'&&String(t.value)===myId94())||(t?.type==='pole'&&ps.has(String(t.value))))||s.targetType==='com'||N94(s.target)==='toute la communication';
 }
-function solicitationConcern93(s){
- if(!s||s.archived||s.deleted||!me93())return false;
- if(String(s.fromMemberId||s.createdByMemberId||'')===myId93())return true;
- if((s.targetMemberIds||[]).map(String).includes(myId93()))return true;
- const ps=myPoles93();
- return solTargets93(s).some(t=>t?.type==='com'||(t?.type==='person'&&String(t.value)===myId93())||(t?.type==='pole'&&ps.has(String(t.value))))
-   ||s.targetType==='com'||N93(s.target)==='toute la communication';
-}
-function programResponse93(p){
- const id=myId93();
- if(p?.memberResponses80?.[id])return p.memberResponses80[id];
- for(const a of Object.values(p?.assignments||{}))if(a?.responses?.[id])return {status:a.responses[id]};
- return null;
-}
-function solicitationResponse93(s){return s?.responses?.[myId93()]||null}
-function status93(x){return (x.k==='p'?programResponse93(x.raw):solicitationResponse93(x.raw))?.status||x.raw?.status||'pending'}
-function final93(x){return ['accepted','confirmed','approved','partial','refused','declined','cancelled','completed'].includes(N93(status93(x)))}
-function relevant93(){
- const a=[];
- (programs||[]).filter(programConcern93).forEach(p=>a.push({k:'p',id:String(p.id),title:p.title||'Programme',date:p.start||p.date||'',raw:p}));
- (solicitations||[]).filter(solicitationConcern93).forEach(s=>a.push({k:'s',id:String(s.id),title:s.event||s.title||'Sollicitation ponctuelle',date:s.date||s.start||'',raw:s}));
- return a;
-}
-function pendingCount93(){return relevant93().filter(x=>!final93(x)).length}
-function servicesCount93(){return relevant93().filter(final93).length}
-
-function trainingCount93(){
- const m=me93();if(!m)return 0;
- const rp=new Set(m.refPoles||[]);
- return (members||[]).filter(x=>{
-   if(x.archived||x.deleted||x.deletedAt||x.status!=='training')return false;
-   if(direction93())return true;
-   if(rp.size&&(x.poles||[]).some(p=>rp.has(p)))return true;
-   return String(x.trainingResponsibleId||x.trainingRespId||'')===myId93();
- }).length;
-}
-
-function availability93(){
- let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}
- return Array.isArray(D.availabilityRequests)?D.availabilityRequests:[];
-}
-function activeMembers93(){
- const now=Date.now(),req=availability93();
+function pResponse94(p){const id=myId94();if(p?.memberResponses80?.[id])return p.memberResponses80[id];for(const a of Object.values(p?.assignments||{}))if(a?.responses?.[id])return {status:a.responses[id]};return null}
+function sResponse94(s){return s?.responses?.[myId94()]||null}
+window.v94Relevant=function(){
+ const out=[];
+ (programs||[]).filter(programConcern94).forEach(p=>out.push({k:'p',id:String(p.id),title:p.title||'Programme',date:p.start||p.date||'',raw:p,status:pResponse94(p)?.status||p.status||'pending'}));
+ (solicitations||[]).filter(solicitationConcern94).forEach(s=>out.push({k:'s',id:String(s.id),title:s.event||s.title||'Sollicitation ponctuelle',date:s.date||s.start||'',raw:s,status:sResponse94(s)?.status||s.status||'pending'}));
+ return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+};
+function avail94(){let D={};try{D=JSON.parse(localStorage.getItem('icc2_v30')||'{}')||{}}catch(e){}return Array.isArray(D.availabilityRequests)?D.availabilityRequests:[]}
+window.v94ActiveMembers=function(){
+ const now=Date.now(),req=avail94();
  return (members||[]).filter(m=>{
    if(m.archived||m.deleted||m.deletedAt||m.status==='inactive')return false;
-   return !req.some(r=>
-     String(r.memberId)===String(m.id)&&
-     ['approved','partial'].includes(r.status)&&
-     !r.archived&&!r.deleted&&
-     Date.parse(r.start||0)<=now&&Date.parse(r.end||r.start||0)>=now
-   );
- }).sort((a,b)=>alpha93(name93(a),name93(b)));
+   return !req.some(r=>String(r.memberId)===String(m.id)&&['approved','partial'].includes(r.status)&&!r.archived&&!r.deleted&&Date.parse(r.start||0)<=now&&Date.parse(r.end||r.start||0)>=now);
+ }).sort((a,b)=>alpha94(name94(a),name94(b)));
+};
+window.v94TrainingMembers=function(){
+ const rp=refs94();
+ return (members||[]).filter(m=>{
+   if(m.archived||m.deleted||m.deletedAt||m.status!=='training')return false;
+   if(direction94())return true;
+   if(String(m.trainingResponsibleId||m.trainingRespId||'')===myId94())return true;
+   return rp.size&&(m.poles||[]).some(p=>rp.has(p));
+ }).sort((a,b)=>alpha94(name94(a),name94(b)));
+};
+window.v94TrainingCount=()=>window.v94TrainingMembers().length;
+
+/* Le dashboard V92 appelle maintenant ces fonctions directement. On force un seul rendu après disponibilité des données. */
+function refreshDashboard94(){
+ try{if(typeof dashboard==='function')dashboard()}catch(e){}
+ const d=document.getElementById('v91-dashboard');if(!d)return;
+ const rel=window.v94Relevant();
+ const final=x=>['accepted','confirmed','approved','partial','refused','declined','cancelled','completed'].includes(N94(x.status));
+ const nums={pending:rel.filter(x=>!final(x)).length,services:rel.filter(final).length,training:window.v94TrainingCount(),active:window.v94ActiveMembers().length};
+ [...d.querySelectorAll('.v91-card')].forEach(c=>{const t=N94(c.textContent),b=c.querySelector('b');if(!b)return;if(t.includes('sollicitations et programmes en attente'))b.textContent=String(nums.pending);else if(t.includes('mes services'))b.textContent=String(nums.services);else if(t.includes('membres en formation'))b.textContent=String(nums.training);else if(t.includes('membres actifs'))b.textContent=String(nums.active)});
 }
-window.v93ActiveMembers=activeMembers93;
+window.v94RefreshDashboard=refreshDashboard94;
 
-/* Remplace uniquement le contenu des chiffres, sans dépendre des closures V91. */
-function refreshDashboardCounts93(){
- const d=document.getElementById('v91-dashboard');if(!d)return false;
- const cards=[...d.querySelectorAll('.v91-card')];
- cards.forEach(c=>{
-   const txt=N93(c.textContent),b=c.querySelector('b');if(!b)return;
-   if(txt.includes('sollicitations et programmes en attente'))b.textContent=String(pendingCount93());
-   else if(txt.includes('mes services'))b.textContent=String(servicesCount93());
-   else if(txt.includes('membres en formation'))b.textContent=String(trainingCount93());
-   else if(txt.includes('membres actifs'))b.textContent=String(activeMembers93().length);
- });
- return true;
-}
-
-/* Si la V92 reconstruit le dashboard, les bons nombres sont injectés immédiatement après. */
-const dashObs93=new MutationObserver(()=>requestAnimationFrame(refreshDashboardCounts93));
-window.addEventListener('load',()=>setTimeout(()=>{
- refreshDashboardCounts93();
- const d=document.getElementById('v91-dashboard');
- if(d)dashObs93.observe(d,{childList:true,subtree:true});
-},1850));
-setInterval(refreshDashboardCounts93,4000);
-
-/* Vue Membres actifs : même calcul, ordre alphabétique. */
+/* Vue active = même source et ordre alphabétique */
 window.v91ShowActive=function(){
- let m=document.getElementById('v91-active');if(!m){m=document.createElement('div');m.id='v91-active';m.className='modal hidden fixed inset-0 z-[320] flex items-center justify-center p-4';document.body.appendChild(m)}
- const a=activeMembers93();
- m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><h3 class="font-black">Membres actifs maintenant (${a.length})</h3><button onclick="closeModal('v91-active')">✕</button></div><div class="p-4 max-h-[70vh] overflow-auto space-y-2">${a.map(x=>`<div class="v91-item"><b>${E93(name93(x))}</b><p class="text-xs text-slate-500">${E93((x.poles||[]).join(', '))}</p></div>`).join('')||'<p class="text-xs text-slate-400">Aucun membre actif.</p>'}</div></div>`;
+ let m=document.getElementById('v91-active');if(!m){m=document.createElement('div');m.id='v91-active';m.className='modal hidden fixed inset-0 z-[325] flex items-center justify-center p-4';document.body.appendChild(m)}
+ const a=window.v94ActiveMembers();
+ m.innerHTML=`<div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl"><div class="bg-iccViolet text-white p-4 flex justify-between"><h3 class="font-black">Membres actifs maintenant (${a.length})</h3><button onclick="closeModal('v91-active')">✕</button></div><div class="p-4 max-h-[70vh] overflow-auto space-y-2">${a.map(x=>`<div class="v91-item"><b>${E94(name94(x))}</b><p class="text-xs text-slate-500">${E94((x.poles||[]).join(', '))}</p></div>`).join('')||'<p class="text-xs text-slate-400">Aucun membre actif.</p>'}</div></div>`;
  openModal('v91-active');
 };
 
-/* =========================================================
-   PARAMÈTRES / FICHE MEMBRE : ARCHIVER OU DÉPART DÉFINITIF
-   ========================================================= */
-function canLifecycle93(member){
- if(direction93())return true;
- if(me93()?.role==='referent'){
-   const rp=refPoles93();
-   return (member?.poles||[]).some(p=>rp.has(p));
- }
- return false;
+/* ===============================================
+   PARAMÈTRES > MEMBRES : UTILISER LES BOUTONS EXISTANTS
+   =============================================== */
+async function syncMember94(reason){
+ try{if(typeof v91Sync==='function')return await v91Sync(reason);if(typeof cloudPush==='function')return await cloudPush(reason)}catch(e){}return false;
 }
-function addLifecycleButtons93(){
- const modal=document.getElementById('member-modal'),form=modal?.querySelector('form');if(!form)return;
- const id=document.getElementById('mem-id')?.value||'';
- const member=(members||[]).find(x=>String(x.id)===String(id));
- let box=document.getElementById('v93-member-lifecycle');
- if(!member||!canLifecycle93(member)){box?.remove();return}
- if(!box){
-   box=document.createElement('div');box.id='v93-member-lifecycle';box.className='v93-member-lifecycle';
-   const actions=[...form.querySelectorAll('.flex.justify-end')].pop();
-   if(actions)actions.insertAdjacentElement('beforebegin',box); else form.appendChild(box);
- }
- box.innerHTML=`<h4>Gestion du départ / de l’absence</h4><p class="text-[10px] text-slate-500 mb-2">L’archivage permet une réintégration ultérieure. Un départ définitif passe d’abord par la corbeille afin de rester restaurable avant suppression définitive.</p><div class="actions"><button type="button" class="v93-archive" onclick="v93ArchiveMember('${E93(member.id)}')">📦 Archiver temporairement</button><button type="button" class="v93-delete" onclick="v93DeleteMember('${E93(member.id)}')">🗑️ Départ définitif / Corbeille</button></div>`;
-}
-window.v93ArchiveMember=async function(id){
- const m=(members||[]).find(x=>String(x.id)===String(id));if(!m||!canLifecycle93(m))return alert('Accès refusé.');
- if(!confirm(`Archiver temporairement ${name93(m)} ?`))return;
- m.archived=true;m.deleted=false;m.archivedAt=new Date().toISOString();m.archiveReason='temporary';m.status='inactive';m.updatedAt=new Date().toISOString();
+window.setMemberInactive=async function(id){
+ const m=(members||[]).find(x=>String(x.id)===String(id));if(!m)return;
+ if(!(direction94()||admin94()|| (me94()?.role==='referent'&&(m.poles||[]).some(p=>refs94().has(p)))))return alert('Accès refusé.');
+ const inactive=m.status==='inactive';
+ if(!inactive&&!confirm(`Inactiver temporairement ${name94(m)} ? Cette personne ne pourra plus agir ni être sollicitée jusqu’à sa réactivation manuelle.`))return;
+ if(inactive&&!confirm(`Réactiver ${name94(m)} ?`))return;
+ m.status=inactive?'active':'inactive';m.inactiveAt=inactive?'':new Date().toISOString();m.updatedAt=new Date().toISOString();
  try{persist?.()}catch(e){}
- const ok=typeof sync92==='function'?await sync92('archive-member'):typeof v91Sync==='function'?await v91Sync('archive-member'):false;
- if(ok){closeModal('member-modal');try{renderMembers?.()}catch(e){};try{renderArchives91?.()}catch(e){};refreshDashboardCounts93();alert('Membre archivé. Il pourra être réintégré depuis Archives & corbeille.')}
+ if(await syncMember94(inactive?'reactivate-member':'deactivate-member')){try{renderSettings?.()}catch(e){};try{renderMembers?.()}catch(e){};refreshDashboard94()}
 };
-window.v93DeleteMember=async function(id){
- const m=(members||[]).find(x=>String(x.id)===String(id));if(!m||!canLifecycle93(m))return alert('Accès refusé.');
- if(!confirm(`Enregistrer le départ définitif de ${name93(m)} et déplacer sa fiche dans la corbeille ?`))return;
- m.deleted=true;m.archived=false;m.deletedAt=new Date().toISOString();m.archiveReason='definitive';m.status='inactive';m.updatedAt=new Date().toISOString();
- /* Nettoyer les fonctions de direction si nécessaire */
+window.removeMember=async function(id){
+ const m=(members||[]).find(x=>String(x.id)===String(id));if(!m)return;
+ if(!(direction94()||admin94()))return alert('Suppression réservée à la Direction ou à l’Admin technique.');
+ if(!confirm(`Voulez-vous réellement supprimer ${name94(m)} ? La fiche sera déplacée dans la corbeille avant toute suppression définitive.`))return;
+ m.deleted=true;m.archived=false;m.deletedAt=new Date().toISOString();m.status='inactive';m.updatedAt=new Date().toISOString();
  if(String(appSettings?.responsableId||'')===String(m.id))appSettings.responsableId='';
  if(String(appSettings?.adjointId||'')===String(m.id))appSettings.adjointId='';
  try{persist?.();saveSettings?.()}catch(e){}
- const ok=typeof sync92==='function'?await sync92('delete-member'):typeof v91Sync==='function'?await v91Sync('delete-member'):false;
- if(ok){closeModal('member-modal');try{renderMembers?.()}catch(e){};try{renderArchives91?.()}catch(e){};refreshDashboardCounts93();alert('Le membre a été déplacé dans la corbeille.')}
+ if(await syncMember94('trash-member')){try{renderSettings?.()}catch(e){};try{renderMembers?.()}catch(e){};try{renderArchives91?.()}catch(e){};refreshDashboard94()}
 };
+try{setMemberInactive=window.setMemberInactive;removeMember=window.removeMember}catch(e){}
 
-/* Ajouter ces boutons après chaque ouverture de fiche Membre, y compris depuis Paramètres. */
-const openMember93=window.openMember;
-window.openMember=function(){
- const r=openMember93?.apply(this,arguments);
- setTimeout(addLifecycleButtons93,80);
- setTimeout(addLifecycleButtons93,220);
- return r;
-};
-
-/* Si la fiche est déjà ouverte ou qu’une ancienne couche la rerend. */
-const memberObs93=new MutationObserver(()=>{if(!document.getElementById('member-modal')?.classList.contains('hidden'))requestAnimationFrame(addLifecycleButtons93)});
-window.addEventListener('load',()=>{
- const mm=document.getElementById('member-modal');
- if(mm)memberObs93.observe(mm,{childList:true,subtree:true});
-});
-
-/* Après toute sauvegarde membre, recompter immédiatement. */
-const saveMember93=window.saveMember;
-if(typeof saveMember93==='function'){
- window.saveMember=async function(){
-   const r=await saveMember93.apply(this,arguments);
-   setTimeout(refreshDashboardCounts93,100);
-   return r;
- };
+/* Adapter visuellement les boutons existants : Inactiver <-> Réactiver, aucun nouveau bouton. */
+function patchSettingsMembers94(){
+ const root=document.getElementById('settings-members');if(!root)return;
+ [...root.querySelectorAll('button')].forEach(btn=>{
+   const oc=btn.getAttribute('onclick')||'';
+   const mi=oc.match(/setMemberInactive\(['\"]([^'\"]+)/);
+   if(mi){const m=(members||[]).find(x=>String(x.id)===String(mi[1]));if(m){btn.textContent=m.status==='inactive'?'Réactiver':'Inactiver';btn.classList.toggle('text-emerald-700',m.status==='inactive');btn.classList.toggle('text-amber-700',m.status!=='inactive')}}
+   const mr=oc.match(/removeMember\(['\"]([^'\"]+)/);if(mr)btn.title='Départ définitif : confirmation puis corbeille';
+ });
+ /* ordre alphabétique des lignes membres */
+ [...root.children].sort((a,b)=>alpha94(a.textContent.trim(),b.textContent.trim())).forEach(x=>root.appendChild(x));
 }
 
-console.info('ICC V93 compteurs/membres chargé');
-})();
-</script>
+/* Garde fonctionnelle pour un compte membre inactif : consultation possible, mutations bloquées. */
+document.addEventListener('click',e=>{
+ const m=me94();if(!m||m.status!=='inactive'||admin94())return;
+ const b=e.target?.closest?.('button');if(!b)return;
+ const txt=N94(b.textContent);
+ if(/enregistrer|envoyer|créer|creer|nouveau|ajouter|modifier|supprimer|valider|accepter|refuser|archiver/.test(txt)){
+   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();alert('Profil inactif : les actions de modification sont suspendues jusqu’à réactivation par la Direction.');
+ }
+},true);
 
-</body>
+/* ===============================================
+   HARMONIE VISUELLE IDENTITÉ / ACCUEIL
+   =============================================== */
+function harmonizeSettings94(){
+ const content=document.getElementById('settings-content');if(!content)return;
+ [...content.querySelectorAll('.v9-card,.bg-white')].forEach(card=>{
+   const t=N94(card.querySelector('h3')?.textContent||'');
+   if(t.includes('identité & accueil')||t.includes('identite & accueil')||t==='🖼️ accueil'||t.includes('accueil')){
+     if(t.includes('identité')||t.includes('identite')||t.includes('🖼️ accueil'))card.classList.add('v94-full-settings-card','md:col-span-2');
+   }
+ });
+ patchSettingsMembers94();
+}
+
+/* renderSettings final hook */
+const rs94=window.renderSettings;
+window.renderSettings=function(){const r=rs94?.apply(this,arguments);setTimeout(()=>{harmonizeSettings94();refreshDashboard94()},0);return r};
+try{renderSettings=window.renderSettings}catch(e){}
+
+/* Synchronisation UI quand les données cloud arrivent ou changent */
+window.addEventListener('load',()=>setTimeout(()=>{refreshDashboard94();harmonizeSettings94()},1900));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>{refreshDashboard94();harmonizeSettings94()},100)});
+const obs94=new MutationObserver(()=>requestAnimationFrame(()=>{refreshDashboard94();harmonizeSettings94()}));
+window.addEventListener('load',()=>setTimeout(()=>{const d=document.getElementById('v91-dashboard');if(d)obs94.observe(d,{childList:true,subtree:true});const s=document.getElementById('settings-content');if(s)obs94.observe(s,{childList:true,subtree:true})},2100));
+setInterval(refreshDashboard94,5000);
+
+console.info('ICC V94 compteurs/paramètres chargée');
+})();
+</script>\n</body>
 </html>
 
